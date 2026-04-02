@@ -1,0 +1,33 @@
+Roll based access
+>Administrator
+  •Manages all accounts.
+  •Manage the systems and data base.
+  •Override any activity.
+
+>Law enforcement officers
+  •Register on the system using their designation and batch numbers.
+  •View a users Documents and the access should expire after a pre determined time to prevent misconduct.
+  •Issue penalties for traffic violations and view previous violations.
+  •Update the status of a pending violation. 
+  •The issued violation should appear on the officers dashboard.
+  •The officer should extend the general user.
+  
+>General User
+  •Should register using the NIC and the relevant documents.
+  •The user should be able to upload the vehicle registration to verify vehicle ownership, and the relevant documents such as the driving license, revenue license and the insurance.
+  •The user should grant or revoke access to other users to drive their owned registered vehicles.
+  •Any unauthorized users driving the vehicle should be reported to the system and notified to the owner.
+  •If the vehicle is reported stolen or missing the user could be detained.
+
+The Penalty
+>Should include the date and time of the Violation.
+>Include the place of the violation
+>Include the Nature of the Violation
+>Include the name & batch number of the Issuing Officer.
+>Provide the Reference number for payments.
+>Allow you to submit proof of payment made via GovPay or any other methods for verification.
+
+Future Improvements
+>Obtain & Renew Driving License, Revenue license and Insurance via the app.
+>Pay the violation fines through the app.
+>Include payment gateway to make necessary payments.

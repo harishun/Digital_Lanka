@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Digital Lanka | Secure Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <style>
+        body { font-family: 'Public Sans', sans-serif; background: #faf8ff; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-[#002366] p-8 text-center text-white">
+            <img alt="Emblem" class="w-16 h-16 mx-auto mb-4 object-contain brightness-0 invert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9du4BwTbMu0Y5FuZqQ1wVfZpJSRza9f5ZVhROyUcVOfUtqDXFPqT2muy0Cr1n9Wim3E93diEaxnzcCllUCbTVfhs_6QhKyyafgrL6DbM4JBN0mkivMys3U_anKzsWjZTH5PslOulw9QvKz3o7U8Lo0mRpnpflHYLs_I1NmPE0LJ_jRiJUTA9XBCBePPlh29ysEKRuZotjDquO93ORUhX_xixjiNZ4rqc5C9OrBFVp8-qFa6P7lW2a0XNCsFm9KwFosaII1JME7L0"/>
+            <h1 class="text-2xl font-black tracking-tight">Digital Lanka</h1>
+            <p class="text-xs font-bold opacity-70 uppercase tracking-widest mt-1">Integrated Traffic & Identity</p>
+        </div>
+        <div class="p-8 space-y-6">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">NIC Number</label>
+                <input id="nic" type="text" class="w-full border border-slate-200 rounded-lg p-4 mt-1 font-bold text-primary focus:border-primary outline-none" placeholder="19XXXXXXXXXX">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Password</label>
+                <input id="password" type="password" class="w-full border border-slate-200 rounded-lg p-4 mt-1 focus:border-primary outline-none" placeholder="••••••••">
+            </div>
+            <div class="space-y-3">
+                <button onclick="login('user')" class="w-full bg-[#002366] text-white py-4 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95">Login as Citizen</button>
+                <button onclick="login('officer')" class="w-full border-2 border-[#002366] text-[#002366] py-4 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95">Login as Officer</button>
+            </div>
+            <p class="text-center text-xs text-slate-400">By logging in, you agree to the Digital Sovereignty Terms of Service.</p>
+        </div>
+    </div>
+
+    <script>
+        function login(role) {
+            const nic = document.getElementById('nic').value;
+            if(!nic) { alert('Please enter your NIC'); return; }
+
+            const session = {
+                name: "Perera, K.A.D.",
+                nic: nic,
+                role: role,
+                batchNumber: role === 'officer' ? "POL-88291" : null
+            };
+
+            localStorage.setItem('dl_session', JSON.stringify(session));
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>

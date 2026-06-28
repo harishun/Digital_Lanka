@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Digital Lanka | Document Management</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    "colors": { "primary": "#00113a", "primary-container": "#002366", "error": "#ba1a1a" }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Public Sans', sans-serif; background: #faf8ff; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .qr-placeholder { background-image: radial-gradient(circle, #757682 1px, transparent 1px); background-size: 4px 4px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+
+    <aside class="hidden md:flex fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 flex-col z-50">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-8 cursor-pointer" onclick="window.location.href='dashboard.html'">
+                <img alt="Emblem" class="w-10 h-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9du4BwTbMu0Y5FuZqQ1wVfZpJSRza9f5ZVhROyUcVOfUtqDXFPqT2muy0Cr1n9Wim3E93diEaxnzcCllUCbTVfhs_6QhKyyafgrL6DbM4JBN0mkivMys3U_anKzsWjZTH5PslOulw9QvKz3o7U8Lo0mRpnpflHYLs_I1NmPE0LJ_jRiJUTA9XBCBePPlh29ysEKRuZotjDquO93ORUhX_xixjiNZ4rqc5C9OrBFVp8-qFa6P7lW2a0XNCsFm9KwFosaII1JME7L0"/>
+                <h1 class="text-xl font-black text-[#002366]">Digital Lanka</h1>
+            </div>
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 transition-all rounded-lg font-medium"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
+                <a href="documents.html" class="flex items-center gap-3 px-4 py-3 bg-slate-50 text-primary border-r-4 border-primary rounded-lg font-medium"><span class="material-symbols-outlined">description</span>My Documents</a>
+                <a href="vehicles.html" class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 transition-all rounded-lg font-medium"><span class="material-symbols-outlined">directions_car</span>Vehicles</a>
+                <a id="officer-link" href="officer.html" class="hidden flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 transition-all rounded-lg font-medium"><span class="material-symbols-outlined">security</span>Officer Portal</a>
+            </nav>
+        </div>
+        <div class="mt-auto p-6 border-t border-slate-100">
+            <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-error font-bold"><span class="material-symbols-outlined">logout</span>Logout</button>
+        </div>
+    </aside>
+
+    <header class="flex justify-between items-center w-full px-4 md:px-8 h-16 sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 md:pl-72">
+        <div class="text-xl font-black text-[#002366]">Document Management</div>
+        <div class="flex items-center gap-4">
+            <div class="text-right">
+                <p id="user-name" class="font-bold text-sm">...</p>
+                <p id="user-nic" class="text-[10px] text-slate-500 font-bold uppercase">NIC: ...</p>
+            </div>
+            <img class="w-8 h-8 rounded-full border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwl3bD-uv71JNEiCfaUpkSHR0Vxp3d3rGBXK7Xkn3Cz3loCw7mgPFZEb97b-uAA0NMo0NRUx41_Jsmsz8OQhMG6CMBf450_DrjLf2PQ2i_LyigANtfOYALNi52I4WV8JL0SdIl4HJIrl7hCXNQlcHFHAz1YFxcS5I0rKvf2xHtY73gbRo1i_6nNuzjzlfUYwpWe5_CYaB0cKsj5CS61Hwnj50Q25M4q666tqAowfnoSrGwAWycq2kWBMdaEKci5X_UuHg0NcTvikU"/>
+        </div>
+    </header>
+
+    <main class="md:pl-64 min-h-screen p-6 md:p-8">
+        <div class="max-w-[1280px] mx-auto space-y-8">
+            <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3">
+                <span class="material-symbols-outlined text-emerald-600">verified_user</span>
+                <p class="text-sm text-emerald-800 font-medium">Your identity is verified. All digital documents below are legally valid for traffic inspections.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Driving License Card -->
+                <div class="bg-gradient-to-br from-[#002366] to-[#00113a] rounded-2xl p-8 text-white shadow-xl relative overflow-hidden h-64">
+                    <div class="relative z-10 h-full flex flex-col justify-between">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs opacity-70 uppercase tracking-widest mb-1">Driving License</p>
+                                <p class="text-xl font-black">B-CATEGORY LIGHT</p>
+                            </div>
+                            <span class="material-symbols-outlined text-4xl opacity-20">badge</span>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[10px] opacity-50 uppercase">License No.</p>
+                                <p class="font-mono text-lg tracking-widest">DL 9044231-X</p>
+                                <p class="text-[10px] opacity-50 uppercase mt-2">Expires</p>
+                                <p class="font-bold text-sm">24 DEC 2028</p>
+                            </div>
+                            <div class="bg-white p-2 rounded-lg"><div class="w-20 h-20 qr-placeholder"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue License Card -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm h-64 flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Revenue License</p>
+                            <p class="text-xl font-black text-primary">WP CAS-9082</p>
+                        </div>
+                        <div class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase">Valid</div>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Vehicle</p>
+                            <p class="font-bold text-primary">Honda Vezel 2018</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mt-2">Valid Until</p>
+                            <p class="font-bold text-primary">12 NOV 2024</p>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-100 p-2 rounded-lg"><div class="w-20 h-20 qr-placeholder"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm">
+                <h3 class="text-lg font-bold text-primary mb-6">Upload & Verify Documents</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <button class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 rounded-xl hover:bg-slate-50 transition-all">
+                        <span class="material-symbols-outlined text-slate-400 mb-2">add_a_photo</span>
+                        <span class="text-xs font-bold text-slate-500 uppercase">Insurance</span>
+                    </button>
+                    <button class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 rounded-xl hover:bg-slate-50 transition-all">
+                        <span class="material-symbols-outlined text-slate-400 mb-2">upload_file</span>
+                        <span class="text-xs font-bold text-slate-500 uppercase">NIC Copy</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let session = JSON.parse(localStorage.getItem('dl_session'));
+        if(!session) {
+            session = {
+                name: "Test User (Dev)",
+                nic: "000000000V",
+                role: "officer",
+                batchNumber: "POL-TEST"
+            };
+            localStorage.setItem('dl_session', JSON.stringify(session));
+        }
+        document.getElementById('user-name').innerText = session.name;
+        document.getElementById('user-nic').innerText = 'NIC: ' + session.nic;
+        if(session.role === 'officer') document.getElementById('officer-link').classList.remove('hidden');
+        function logout() { localStorage.removeItem('dl_session'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>

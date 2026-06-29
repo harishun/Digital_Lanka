@@ -1,1 +1,124 @@
-...
+Roll based access
+>Administrator
+  •Manages all accounts.
+  •Manage the systems and data base.
+  •Override any activity.
+      pratheeka-
+  •Approve or reject law enforcement officer registrations.
+  •Send announcements or notifications to users.
+  •View system audit logs.
+  •Suspend or deactivate user accounts.
+  •Generate reports and analytics.
+  •Manage vehicle and violation records.
+  •Approve or reject law enforcement officer registrations.
+
+>Law enforcement officers
+  •Register on the system using their designation and batch numbers.
+  •View a users Documents and the access should expire after a pre determined time to prevent misconduct.
+  •Issue penalties for traffic violations and view previous violations.
+  •Update the status of a pending violation. 
+  •The issued violation should appear on the officers dashboard.
+  •The officer should extend the general user.(unclear)
+      pratheeka-
+  •Verify the driver's identity.
+  •Verify vehicle ownership.
+  •Search drivers using NIC, driving license number, or vehicle registration number.
+  •Upload evidence (photos, videos, or documents) for issued violations.
+  •Cancel or correct a mistakenly issued violation (with administrator approval)
+  •Receive notifications regarding pending cases or updates.
+  
+>General User
+  •Should register using the NIC and the relevant documents.
+  •The user should be able to upload the vehicle registration to verify vehicle ownership, and the relevant documents such as the driving license, revenue license and the insurance.
+  •The user should grant or revoke access to other users to drive their owned registered vehicles.
+  •Any unauthorized users driving the vehicle should be reported to the system and notified to the owner.
+  •If the vehicle is reported stolen or missing the user could be detained.(better version-The user should be able to report a vehicle as stolen or missing.
+The system should notify the relevant law enforcement authorities when a vehicle is reported as stolen or missing.)
+
+pratheeka-
+  •Log in securely.
+  •View owned registered vehicles.
+  •View penalties and violation history.
+  •Submit proof of payment for fines.
+  •Receive notifications for:
+      New violations
+      Document expiry
+      Unauthorized vehicle usage
+      Access requests
+  •Update personal profile information.
+  •Download violation receipts.
+  •View the status of submitted payment verification.
+  
+
+The Penalty
+>Should include the date and time of the Violation.
+>Include the place of the violation
+>Include the Nature of the Violation
+>Include the name & batch number of the Issuing Officer.
+>Provide the Reference number for payments.
+>Allow you to submit proof of payment made via GovPay or any other methods for verification.
+
+pratheeka-
+>Fine amount
+>Due date
+>Payment reference number
+>Violation status (Pending, Paid, Cancelled, Under Review)
+>Payment status
+>Remarks
+
+Future Improvements
+>Obtain & Renew Driving License, Revenue license and Insurance via the app.
+>Pay the violation fines through the app.
+>Include payment gateway to make necessary payments.
+pratheeka-
+    QR code verification for driving licenses and vehicle documents.
+    SMS and email notifications for violations, payments, and document expiry.
+    Integration with government databases for real-time verification.
+    Digital driving license accessible through the app.
+    GPS location support for reporting traffic incidents.
+
+
+
+pratheeka-
+Vehicle Management
+  >Register a vehicle.
+  > Update vehicle details.
+  >Transfer vehicle ownership.
+  >View registered vehicles.
+  >Report stolen or recovered vehicles.
+  >Manage authorized drivers.
+
+Notifications
+
+  The system should notify users when:
+    >A violation is issued.
+    >Payment is due.
+    >Payment is verified.
+    >Driving license is about to expire.
+    >Revenue license is about to expire.
+    >Insurance is about to expire.
+    >Unauthorized person is driving the vehicle.
+    >Vehicle is reported stolen.
+    >Access is granted or revoked.
+
+Security Features
+  >Secure login.
+  >Password encryption.
+  >Two-factor authentication (optional).
+  >Role-based access control.
+  >Temporary document access for officers.
+  >Activity logs for all users.
+  >Automatic logout after inactivity.
+
+Reports
+  
+Administrator can generate:
+  >Daily violation reports.
+  >Monthly violation reports.
+  >Officer performance reports.
+  >Fine collection reports.
+  >Registered vehicle reports.
+  >Registered user reports.
+  >Stolen vehicle reports.
+
+

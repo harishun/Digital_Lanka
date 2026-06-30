@@ -3,8 +3,6 @@ Roll based access
   •Manages all accounts.
   •Manage the systems and data base.
   •Override any activity.
-      pratheeka-
-  •Approve or reject law enforcement officer registrations.
   •Send announcements or notifications to users.
   •View system audit logs.
   •Suspend or deactivate user accounts.
@@ -19,7 +17,6 @@ Roll based access
   •Update the status of a pending violation. 
   •The issued violation should appear on the officers dashboard.
   •The officer should extend the general user.(unclear)
-      pratheeka-
   •Verify the driver's identity.
   •Verify vehicle ownership.
   •Search drivers using NIC, driving license number, or vehicle registration number.
@@ -32,10 +29,9 @@ Roll based access
   •The user should be able to upload the vehicle registration to verify vehicle ownership, and the relevant documents such as the driving license, revenue license and the insurance.
   •The user should grant or revoke access to other users to drive their owned registered vehicles.
   •Any unauthorized users driving the vehicle should be reported to the system and notified to the owner.
-  •If the vehicle is reported stolen or missing the user could be detained.(better version-The user should be able to report a vehicle as stolen or missing.
-The system should notify the relevant law enforcement authorities when a vehicle is reported as stolen or missing.)
+  •The user should be able to report a vehicle as stolen or missing.
+  •The system should notify the relevant law enforcement authorities when a vehicle is reported as stolen or missing.
 
-pratheeka-
   •Log in securely.
   •View owned registered vehicles.
   •View penalties and violation history.
@@ -57,20 +53,19 @@ The Penalty
 >Include the name & batch number of the Issuing Officer.
 >Provide the Reference number for payments.
 >Allow you to submit proof of payment made via GovPay or any other methods for verification.
-
-pratheeka-
->Fine amount
->Due date
->Payment reference number
->Violation status (Pending, Paid, Cancelled, Under Review)
->Payment status
->Remarks
+>Display
+    Fine amount
+    Due date
+    Payment reference number
+    Violation status (Pending, Paid, Cancelled, Under Review)
+    Payment status
+    Remarks
 
 Future Improvements
 >Obtain & Renew Driving License, Revenue license and Insurance via the app.
 >Pay the violation fines through the app.
 >Include payment gateway to make necessary payments.
-pratheeka-
+
     QR code verification for driving licenses and vehicle documents.
     SMS and email notifications for violations, payments, and document expiry.
     Integration with government databases for real-time verification.
@@ -79,7 +74,7 @@ pratheeka-
 
 
 
-pratheeka-
+
 Vehicle Management
   >Register a vehicle.
   > Update vehicle details.

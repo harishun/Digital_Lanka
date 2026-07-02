@@ -1,33 +1,37 @@
 Roll based access
->Administrator
-  •Manages all accounts.
-  •Manage the systems and data base.
-  •Override any activity.
 
->Law enforcement officers
-  •Register on the system using their designation and batch numbers.
-  •View a users Documents and the access should expire after a pre determined time to prevent misconduct.
-  •Issue penalties for traffic violations and view previous violations.
-  •Update the status of a pending violation. 
-  •The issued violation should appear on the officers dashboard.
-  •The officer should extend the general user.
-  
->General User
-  •Should register using the NIC and the relevant documents.
-  •The user should be able to upload the vehicle registration to verify vehicle ownership, and the relevant documents such as the driving license, revenue license and the insurance.
-  •The user should grant or revoke access to other users to drive their owned registered vehicles.
-  •Any unauthorized users driving the vehicle should be reported to the system and notified to the owner.
-  •If the vehicle is reported stolen or missing the user could be detained.
+Administrator
+•Manages all accounts.
+•Manage the systems and data base.
+•Override any activity, subject to an immutable audit log that permanently records all administrative actions to prevent abuse.
+
+Law enforcement officers
+•Provisioned by centralized IT using their designation and batch numbers (replaces self-registration to prevent impersonation).
+•View a user's Documents; access must expire after a pre-determined time to prevent misconduct.
+•Access an offline-fallback mode (e.g., license plate lookup or offline QR scan) for use in cellular dead zones or if the user's device is dead.
+•Issue penalties for traffic violations and view previous violations.
+•Update the status of a pending violation.
+•The issued violation should appear on the officer's dashboard.
+•The officer should extend the general user.
+
+General User
+•Register using the NIC; the system automatically verifies identity by connecting to the Mock Government Database API.
+•The system automatically links vehicle ownership, driving license, revenue license, and insurance directly from the Mock API (replaces manual photo uploads to prevent document fraud).
+•Grant or revoke access to other users to drive their owned registered vehicles, including the ability to issue frictionless temporary passes for valets, mechanics, or emergencies.
+•Any unauthorized users driving the vehicle should be reported to the system and notified to the owner.
+•If the vehicle is reported stolen or missing, the user could be detained (requires a strict, verified protocol to clear the stolen status if the owner recovers the vehicle themselves).
 
 The Penalty
->Should include the date and time of the Violation.
->Include the place of the violation
->Include the Nature of the Violation
->Include the name & batch number of the Issuing Officer.
->Provide the Reference number for payments.
->Allow you to submit proof of payment made via GovPay or any other methods for verification.
+
+Include the date and time of the Violation.
+Include the place of the violation.
+Include the Nature of the Violation.
+Include the name & batch number of the Issuing Officer.
+Provide the Reference number for payments.
+Automatically update payment status from PENDING to PAID via Webhook integration from the GovPay Mock Service (replaces manual review of submitted payment proof).
 
 Future Improvements
->Obtain & Renew Driving License, Revenue license and Insurance via the app.
->Pay the violation fines through the app.
->Include payment gateway to make necessary payments.
+
+Obtain & Renew Driving License, Revenue license and Insurance via the app.
+Pay the violation fines through the app.
+Include payment gateway to make necessary payments.

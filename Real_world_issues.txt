@@ -1,0 +1,41 @@
+Real-World Issues to Address
+
+
+Connectivity and Infrastructure
+
+Network Dead Zones
+• Traffic stops often occur in areas with poor cellular coverage, preventing the app from verifying data or refreshing expired access.
+• An offline-first architecture or encrypted QR code fallback is required.
+
+Device Failure
+• If a user’s phone battery dies, they cannot present their digital documents.
+• Officers need a secondary lookup method (e.g., searching by license plate or NIC) that does not rely on the user's device.
+
+
+Vehicle using privileges Edge Cases
+
+Casual Delegation
+• Forcing users to manually grant access for valets, mechanics, or a neighbor moving the car creates high user friction.
+Emergency Situations
+• If a medical emergency occurs and an unauthorized person drives the vehicle, the system might automatically flag them, leading to unwarranted police interception.
+
+
+Security and Abuse of Power
+
+Administrative Oversight
+• The "Override any activity" privilege for Administrators is a severe security risk.
+• The system must enforce immutable audit logs so that every admin action is permanently recorded and traceable.
+Officer Authentication
+• Allowing officers to self-register with public batch numbers invites impersonation.
+• Officer accounts must be centrally provisioned by the police department's IT directory.
+
+Data Privacy
+• Officers having access to citizens' home addresses and travel history requires strict monitoring to prevent profiling or stalking.
+
+Operational Bottlenecks & Detainment
+
+Document Fraud
+• Relying on users to upload photos of documents requires manual human verification to catch manipulated images.
+
+False Detainment
+• If a user recovers their own stolen vehicle but forgets to update the app, they risk being held at gunpoint by police relying on outdated system data.

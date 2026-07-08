@@ -1,0 +1,14 @@
+/concept_images/
+/government-mock-apis/
+/reference_documents/
+dl_text.txt
+nic_text.txt
+ssr_text.txt
+
+
+/SSR_Document/*.aux
+/SSR_Document/*.log
+/SSR_Document/*.out
+/SSR_Document/*.pdf
+/SSR_Document/*.synctex.gz
+/SSR_Document/*.toc

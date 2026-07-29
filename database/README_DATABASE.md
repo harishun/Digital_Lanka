@@ -13,20 +13,15 @@ docker compose up -d
 ```
 
 ### What Docker Does:
-1. Starts **MySQL 8.0** on port `3306` for `digital_lanka_db` (App Database).
-2. Starts **MySQL 8.0** on port `3307` for `dmt_mock_db` (Statutory DMT Registry DB).
-3. Automatically executes `database/01_digital_lanka_app_db.sql` and `database/02_dmt_registry_db.sql` to seed all tables and test records.
+1. Starts **MySQL 8.0** on port `3306` for `digital_lanka_db` (App Database mounted from `database/01_digital_lanka_app_db.sql`).
+2. Starts **MySQL 8.0** on port `3307` for `dmt_mock_db` (Statutory DMT Registry DB mounted directly from `government-mock-apis/mysql-init/02_dmt_schema.sql`).
+3. Automatically executes both SQL scripts to seed all tables and test records.
 
 ### Credentials:
 - **Application DB Port**: `3306`
   - Database: `digital_lanka_db` | User: `lanka_user` | Password: `lankapassword`
 - **DMT Registry DB Port**: `3307`
   - Database: `dmt_mock_db` | User: `dmt_user` | Password: `dmtpassword`
-
-To stop containers:
-```bash
-docker compose down
-```
 
 ---
 
@@ -35,17 +30,17 @@ docker compose down
 If developers are using local MySQL instances (XAMPP, WAMP, native MySQL Server):
 
 1. **Import Application Database**:
-   - Run file: [`database/01_digital_lanka_app_db.sql`](file:///c:/Users/dhana/Desktop/digital_lanka/database/01_digital_lanka_app_db.sql)
+   - File: [`database/01_digital_lanka_app_db.sql`](file:///c:/Users/dhana/Desktop/digital_lanka/database/01_digital_lanka_app_db.sql)
    - Command:
      ```bash
      mysql -u root -p < database/01_digital_lanka_app_db.sql
      ```
 
 2. **Import DMT Mock Registry Database**:
-   - Run file: [`database/02_dmt_registry_db.sql`](file:///c:/Users/dhana/Desktop/digital_lanka/database/02_dmt_registry_db.sql)
+   - File: [`government-mock-apis/mysql-init/02_dmt_schema.sql`](file:///c:/Users/dhana/Desktop/digital_lanka/government-mock-apis/mysql-init/02_dmt_schema.sql)
    - Command:
      ```bash
-     mysql -u root -p < database/02_dmt_registry_db.sql
+     mysql -u root -p < government-mock-apis/mysql-init/02_dmt_schema.sql
      ```
 
 ---
@@ -54,5 +49,5 @@ If developers are using local MySQL instances (XAMPP, WAMP, native MySQL Server)
 | File Path | Description |
 |---|---|
 | [`database/01_digital_lanka_app_db.sql`](file:///c:/Users/dhana/Desktop/digital_lanka/database/01_digital_lanka_app_db.sql) | Application DB schema & sample seed data (`citizens`, `vehicles`, `authorizations`, `notifications`, `stolen_recovery_logs`). |
-| [`database/02_dmt_registry_db.sql`](file:///c:/Users/dhana/Desktop/digital_lanka/database/02_dmt_registry_db.sql) | Department of Motor Traffic Registry schema & seed data (`driving_licences`, `vehicle_registrations`, `revenue_licenses`, `insurance_policies`, `emission_certificates`). |
-| [`docker-compose.yml`](file:///c:/Users/dhana/Desktop/digital_lanka/docker-compose.yml) | Docker Compose configuration for 1-command developer database setup. |
+| [`government-mock-apis/mysql-init/02_dmt_schema.sql`](file:///c:/Users/dhana/Desktop/digital_lanka/government-mock-apis/mysql-init/02_dmt_schema.sql) | Self-contained Department of Motor Traffic Registry schema & seed data inside `government-mock-apis/`. |
+| [`docker-compose.yml`](file:///c:/Users/dhana/Desktop/digital_lanka/docker-compose.yml) | Docker Compose configuration orchestrating both databases. |

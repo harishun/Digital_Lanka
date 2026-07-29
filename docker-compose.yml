@@ -21,6 +21,7 @@ services:
 
   # ────────────────────────────────────────────────────────────
   # 2. DMT Statutory Mock Registry Database Service
+  #    (Mounts SQL schema directly from government-mock-apis/)
   # ────────────────────────────────────────────────────────────
   dmt-mock-db:
     image: mysql:8.0
@@ -34,7 +35,7 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - ./database/02_dmt_registry_db.sql:/docker-entrypoint-initdb.d/02_dmt_registry_db.sql
+      - ./government-mock-apis/mysql-init/02_dmt_schema.sql:/docker-entrypoint-initdb.d/02_dmt_schema.sql
       - dmt_db_data:/var/lib/mysql
 
 volumes:

@@ -53,9 +53,12 @@ function App() {
   const [isError, setIsError] = useState(false);
 
   const personas = [
-    { nic: '197204509123', name: 'W.M. Sugathadasa (Owner & Driver)', role: 'Citizen' },
-    { nic: '198503402948', name: 'Arjun Ranaweera (Driver/Owner)', role: 'Citizen' },
-    { nic: '199003402948', name: 'K.A. Don Perera (Driver)', role: 'Citizen' }
+    { nic: '197204509123', name: '👑 W.M. Sugathadasa (ROOT_ADMIN & Vehicle Owner)', role: 'ROOT_ADMIN' },
+    { nic: '198503402948', name: '👤 Arjun Ranaweera (Citizen & Motorcycle Owner)', role: 'CITIZEN' },
+    { nic: '199003402948', name: '👤 K.A. Don Perera (Citizen Driver)', role: 'CITIZEN' },
+    { nic: '198012304958', name: '🚛 Mahinda Rathnayake (Heavy Lorry Driver)', role: 'CITIZEN' },
+    { nic: '199556708123', name: '🚌 Tharindu Jayasuriya (Bus & Public Transport)', role: 'CITIZEN' },
+    { nic: '200508901234', name: '⚡ Shenali Perera (EV Owner & New Driver)', role: 'CITIZEN' }
   ];
 
   useEffect(() => {

@@ -1,0 +1,164 @@
+:root{
+  --card-w: 680px;                 /* front.png ratio 710:500 ≈ 1.42 */
+  --card-h: 479px;
+  --ink:  #1a1a1a;
+  --lbl:  #2a2a2a;
+  /* serif stack matches the card's printed English typography;
+     Sinhala/Tamil fall back to their own fonts */
+  --serif: Georgia,"Times New Roman","Sinhala Sangam MN","Tamil Sangam MN",serif;
+  --sans:  "Noto Sans","Segoe UI","Sinhala Sangam MN","Tamil Sangam MN",Arial,sans-serif;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+  font-family:var(--sans);
+  background:#dfe3e6;
+  min-height:100vh;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:22px; padding:40px 16px;
+}
+
+/* ---------------- 3D FLIP SHELL ---------------- */
+.scene{ width:var(--card-w); height:var(--card-h); perspective:1900px; }
+
+.card3d{
+  position:relative; width:100%; height:100%;
+  transform-style:preserve-3d;
+  transition:transform .9s cubic-bezier(.4,.1,.2,1);
+  cursor:pointer;
+}
+.card3d.is-flipped{ transform:rotateY(180deg); }
+
+.face{
+  position:absolute; inset:0;
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  border-radius:22px; overflow:hidden;
+  box-shadow:0 16px 34px rgba(20,40,60,.28);
+  background-size:100% 100%;
+  background-position:center; background-repeat:no-repeat;
+  container-type:size;                /* cqw units scale text with the card */
+}
+.face--front{ background-image:url("front.png"); }
+.face--back { background-image:url("back.png"); transform:rotateY(180deg); }
+
+/* language helpers */
+.si{ font-family:"Noto Sans Sinhala","Sinhala Sangam MN",sans-serif; }
+.ta{ font-family:"Noto Sans Tamil","Tamil Sangam MN",sans-serif; }
+i{ font-style:normal; color:#6f6f6f; margin:0 .3cqw; font-family:var(--serif); }
+b{ font-weight:700; }
+
+/* labels: serif to blend with the printed card text */
+.lbl,.nm-lbl,.row-lbl,.row2-lbl,.addr-lbl,.cg-lbl{
+  font-family:var(--serif); color:var(--lbl);
+}
+/* values: clean bold sans, dark ink */
+.no-val,.nm-val,.row-val,.row2-val,.addr span{ color:var(--ink); }
+
+/* =====================================================
+   FRONT OVERLAY  (% of the card)
+   ===================================================== */
+.no-line{
+  position:absolute; left:6%; top:30.5%;
+  display:flex; align-items:baseline; gap:1.4cqw;
+}
+.no-line .lbl{ font-size:2.1cqw; }
+.no-val{
+  font-family:"Courier New",monospace; font-weight:700;
+  font-size:3.6cqw; letter-spacing:.4cqw;
+}
+
+.photo{
+  position:absolute; left:6%; top:38%; width:25%; height:39%;
+  border:1px solid rgba(70,70,70,.35);
+  background:rgba(255,255,255,.04); overflow:hidden;
+}
+.photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+.fr-fields{
+  position:absolute; left:34%; top:37%; right:4%;
+  display:flex; flex-direction:column; gap:.4cqw;
+}
+.nm{ display:flex; gap:1.6cqw; align-items:baseline; }
+.nm-lbl{ font-size:2cqw; min-width:8cqw; }
+.nm-val{ font-size:2.5cqw; font-weight:700; line-height:1.15; }
+.nm-val.en{ letter-spacing:.15cqw; }
+
+.row{ margin-top:1.1cqw; }
+.row-lbl{ display:block; font-size:1.85cqw; }
+.row-val{ font-size:2.4cqw; font-weight:700; }
+
+.fr-foot{
+  position:absolute; left:6%; right:6%; top:86%;
+  display:flex; justify-content:space-between; align-items:flex-end;
+}
+.foot-lbl{ font-size:1.75cqw; font-family:var(--serif); color:var(--lbl); }
+.foot-sign{                                    /* holder signs to the RIGHT, no line */
+  width:22cqw; height:5cqw; text-align:right; margin-bottom:-.5cqw;
+}
+.foot-sign img{ max-width:100%; max-height:100%; object-fit:contain; }
+
+/* =====================================================
+   BACK OVERLAY
+   ===================================================== */
+.addr{
+  position:absolute; left:6%; top:13%; width:66%;
+  display:flex; flex-direction:column; gap:.2cqw;
+}
+.addr .si{ font-size:2.6cqw; font-weight:700; }
+.addr .ta{ font-size:2.1cqw; font-weight:600; }
+.addr .en{ font-size:2.1cqw; font-weight:700; letter-spacing:.15cqw; }
+
+.serials{
+  position:absolute; right:5%; top:9%;
+  font-family:"Courier New",monospace; font-size:2.1cqw; font-weight:700; color:#123;
+}
+.vserial{
+  position:absolute; right:1.5%; top:50%;
+  transform:translateY(-50%) rotate(90deg); transform-origin:right center;
+  font-family:"Courier New",monospace; font-size:1.7cqw; font-weight:700; color:#123;
+  white-space:nowrap;
+}
+
+/* Place of Birth sits UP under the address, clear of the baked Act line */
+.place{ position:absolute; left:6%; top:30%; }
+/* Date of Issue sits in the white strip, above the barcode */
+.issue{ position:absolute; left:6%; top:58%; }
+.row2-lbl{ display:block; font-size:1.75cqw; }
+.row2-val{ font-size:2.2cqw; font-weight:700; }
+
+.commissioner{                                 /* also UP in the colored area, right side */
+  position:absolute; right:5%; top:27%; width:34%; text-align:center;
+}
+.cg-sign{ display:block; height:4.2cqw; margin-bottom:.4cqw; }
+.cg-sign img{ max-height:100%; object-fit:contain; }
+.cg-lbl{
+  font-size:1.55cqw; line-height:1.3;
+  border-top:1px solid #445; padding-top:.4cqw; display:block;
+}
+
+.barcode{
+  position:absolute; left:7%; right:7%; bottom:5.5%; height:8.5%;
+  display:grid; place-items:center; overflow:hidden;
+}
+.barcode img{ height:100%; width:100%; object-fit:fill; }
+.barcode:not(:has(img[src])){
+  background:repeating-linear-gradient(90deg,
+    #111 0 2px, #fff 2px 3px, #111 3px 6px, #fff 6px 8px,
+    #111 8px 9px, #fff 9px 12px, #111 12px 15px, #fff 15px 16px);
+}
+
+/* ---------------- controls ---------------- */
+.flip-btn{
+  border:none; background:#14406b; color:#fff;
+  font-size:14px; font-weight:600; padding:10px 22px;
+  border-radius:30px; cursor:pointer; box-shadow:0 6px 14px rgba(20,64,107,.35);
+}
+.flip-btn:hover{ background:#1b568f; }
+.hint{ font-size:13px; color:#456; }
+.hint code{ background:#cdd8de; padding:1px 6px; border-radius:4px; }
+
+@media (max-width:720px){
+  :root{ --card-w:360px; --card-h:254px; }
+}

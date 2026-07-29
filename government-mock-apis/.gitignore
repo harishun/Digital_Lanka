@@ -1,0 +1,13 @@
+# Git ignore file for government-mock-apis
+
+# Never commit secrets to Git
+.env
+
+# Docker build cache
+.dockerignore
+
+# Uploaded citizen photos and signatures (real personal data)
+drp-mock-api/uploads/*
+dmt-mock-api/uploads/*
+!drp-mock-api/uploads/.gitkeep
+!dmt-mock-api/uploads/.gitkeep

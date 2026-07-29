@@ -1,0 +1,122 @@
+version: '3.9'
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  SECURITY MODEL
+#
+#  drp-api and dmt-api are INTERNAL services — they have NO public ports.
+#  They are only reachable from inside the Docker network (govnet).
+#  The Spring Boot backend container must join this same network to call them.
+#
+#  Direct access to the raw APIs from a browser or curl is blocked by design.
+#  All citizen-facing requests must go through the Spring Boot backend,
+#  which enforces JWT authentication before making any gov API calls.
+#
+#  phpMyAdmin and MySQL are exposed on localhost ONLY for development.
+#  In production, remove their port mappings too.
+#
+#  The shared API key (GOV_API_KEY) is an additional layer — even if someone
+#  somehow reached the API container directly, they still need the key.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Shared MySQL Database ─────────────────────────────────────────────────
+  mysql-db:
+    image: mysql:8.0
+    container_name: gov_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"   # localhost only — remove in production
+    networks:
+      - govnet
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ugovuser", "-pgovpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── phpMyAdmin Dashboard ──────────────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: gov_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"     # localhost only — remove in production
+    environment:
+      PMA_HOST: mysql-db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: govroot
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - govnet
+
+  # ── DRP Mock API (Dept. of Registration of Persons) ───────────────────────
+  drp-api:
+    build: ./drp-mock-api
+    container_name: drp_api
+    restart: unless-stopped
+    # Port exposed for local dev/Postman testing.
+    # API key (X-Gov-Api-Key header) is still required for every request.
+    # Remove this port mapping before deploying to a public server.
+    ports:
+      - "8081:80"
+    environment:
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_NAME: drp_mock_db
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+      GOV_API_KEY: ${GOV_API_KEY}
+    volumes:
+      - drp_uploads:/var/www/html/uploads
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - govnet
+
+  # ── DMT Mock API (Dept. of Motor Traffic) ────────────────────────────────
+  dmt-api:
+    build: ./dmt-mock-api
+    container_name: dmt_api
+    restart: unless-stopped
+    # Port exposed for local dev/Postman testing.
+    # API key (X-Gov-Api-Key header) is still required for every request.
+    # Remove this port mapping before deploying to a public server.
+    ports:
+      - "8082:80"
+    environment:
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_NAME: dmt_mock_db
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+      GOV_API_KEY: ${GOV_API_KEY}
+    volumes:
+      - ./dmt-mock-api:/var/www/html
+      - dmt_uploads:/var/www/html/uploads
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - govnet
+
+networks:
+  govnet:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  drp_uploads:
+  dmt_uploads:

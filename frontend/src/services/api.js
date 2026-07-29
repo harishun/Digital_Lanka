@@ -10,6 +10,7 @@ const DEFAULT_CITIZENS = {
   "197204509123": {
     nic: "197204509123",
     fullName: "W.M. SUGATHADASA",
+    role: "ROOT_ADMIN",
     gender: "Male",
     dateOfBirth: "1972-06-15",
     address: "No. 45, Flower Road, Colombo 07",
@@ -22,41 +23,98 @@ const DEFAULT_CITIZENS = {
     vehicleClasses: [
       { classCode: "A1", issuedDate: "1995-04-10", expiryDate: "2032-06-15", description: "Light Motor Cycles" },
       { classCode: "A",  issuedDate: "1995-04-10", expiryDate: "2032-06-15", description: "Motor Cycles" },
-      { classCode: "B",  issuedDate: "1995-04-10", expiryDate: "2032-06-15", description: "Dual Purpose Vehicles" }
+      { classCode: "B",  issuedDate: "1995-04-10", expiryDate: "2032-06-15", description: "Dual Purpose Vehicles" },
+      { classCode: "G1", issuedDate: "2000-01-15", expiryDate: "2032-06-15", description: "Land Tractors" }
     ]
   },
   "198503402948": {
     nic: "198503402948",
     fullName: "ARJUN RANAWEERA",
+    role: "CITIZEN",
     gender: "Male",
     dateOfBirth: "1985-03-04",
-    address: "No. 15, Kandy Road, Kegalle",
-    dateOfIssue: "2010-11-12",
-    placeOfBirth: "Kegalle",
+    address: "No. 45, Peradeniya Rd, Kandy",
+    dateOfIssue: "2003-11-15",
+    placeOfBirth: "Kandy",
     licenseNumber: "DL-9044231-X",
     bloodGroup: "A+",
-    restrictions: "CORRECTIVE LENSES",
-    donor: false,
+    restrictions: "NONE",
+    donor: true,
     vehicleClasses: [
-      { classCode: "B",  issuedDate: "2010-11-12", expiryDate: "2029-11-12", description: "Dual Purpose Vehicles" },
-      { classCode: "B1", issuedDate: "2010-11-12", expiryDate: "2029-11-12", description: "Motor Tricycles" },
-      { classCode: "G1", issuedDate: "2015-06-20", expiryDate: "2029-11-12", description: "Land Tractors" }
+      { classCode: "A",  issuedDate: "2003-11-15", expiryDate: "2029-11-15", description: "Motor Cycles" },
+      { classCode: "B",  issuedDate: "2003-11-15", expiryDate: "2029-11-15", description: "Dual Purpose Vehicles" }
     ]
   },
   "199003402948": {
     nic: "199003402948",
     fullName: "K.A. DON PERERA",
+    role: "CITIZEN",
     gender: "Male",
-    dateOfBirth: "1990-07-20",
-    address: "No. 42, Galle Road, Colombo 03",
-    dateOfIssue: "2012-08-15",
-    placeOfBirth: "Colombo",
-    licenseNumber: "DL-8822331-P",
-    bloodGroup: "O-",
+    dateOfBirth: "1990-11-20",
+    address: "No. 12, Matara Rd, Galle",
+    dateOfIssue: "2008-06-01",
+    placeOfBirth: "Galle",
+    licenseNumber: "DL-8822119-P",
+    bloodGroup: "B+",
+    restrictions: "NONE",
+    donor: false,
+    vehicleClasses: [
+      { classCode: "B", issuedDate: "2008-06-01", expiryDate: "2030-06-01", description: "Dual Purpose Vehicles" }
+    ]
+  },
+  "198012304958": {
+    nic: "198012304958",
+    fullName: "MAHINDA RATHNAYAKE",
+    role: "CITIZEN",
+    gender: "Male",
+    dateOfBirth: "1980-04-12",
+    address: "No. 88, Main Street, Kurunegala",
+    dateOfIssue: "2002-03-10",
+    placeOfBirth: "Kurunegala",
+    licenseNumber: "DL-7733441-H",
+    bloodGroup: "O+",
+    restrictions: "CORRECTIVE LENSES",
+    donor: true,
+    vehicleClasses: [
+      { classCode: "C1", issuedDate: "2002-03-10", expiryDate: "2025-04-12", description: "Light Motor Lorry" },
+      { classCode: "C",  issuedDate: "2002-03-10", expiryDate: "2025-04-12", description: "Heavy Motor Lorry" },
+      { classCode: "CE", issuedDate: "2005-08-20", expiryDate: "2025-04-12", description: "Heavy Motor Lorry Trailer" }
+    ]
+  },
+  "199556708123": {
+    nic: "199556708123",
+    fullName: "THARINDU JAYASURIYA",
+    role: "CITIZEN",
+    gender: "Male",
+    dateOfBirth: "1995-09-08",
+    address: "No. 23, Bus Stand Rd, Negombo",
+    dateOfIssue: "2016-05-10",
+    placeOfBirth: "Negombo",
+    licenseNumber: "DL-6655443-B",
+    bloodGroup: "AB+",
     restrictions: "NONE",
     donor: true,
     vehicleClasses: [
-      { classCode: "B", issuedDate: "2012-08-15", expiryDate: "2032-07-20", description: "Dual Purpose Vehicles" }
+      { classCode: "D1", issuedDate: "2016-05-10", expiryDate: "2031-09-08", description: "Light Motor Coach" },
+      { classCode: "D",  issuedDate: "2016-05-10", expiryDate: "2031-09-08", description: "Motor Coach" },
+      { classCode: "PT", issuedDate: "2018-01-20", expiryDate: "2031-09-08", description: "Public Transport Endorsement" }
+    ]
+  },
+  "200508901234": {
+    nic: "200508901234",
+    fullName: "SHENALI PERERA",
+    role: "CITIZEN",
+    gender: "Female",
+    dateOfBirth: "2005-02-14",
+    address: "No. 101, Galle Road, Dehiwala",
+    dateOfIssue: "2023-03-01",
+    placeOfBirth: "Kalubowila",
+    licenseNumber: "DL-5544332-E",
+    bloodGroup: "A-",
+    restrictions: "NONE",
+    donor: true,
+    vehicleClasses: [
+      { classCode: "B", issuedDate: "2023-03-01", expiryDate: "2033-02-14", description: "Dual Purpose Vehicles" }
     ]
   }
 };

@@ -1,0 +1,22 @@
+# Maven build output
+target/
+*.class
+*.jar
+*.war
+
+# Eclipse / STS
+.settings/
+.project
+.classpath
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+
+# Logs
+*.log

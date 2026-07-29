@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sri Lanka National Identity Card</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="scene">
+    <div class="card3d" id="card">
+
+      <!-- ==================== FRONT ==================== -->
+      <!-- header/emblem/title/lotus are printed on front.png -->
+      <div class="face face--front">
+
+        <div class="no-line">
+          <span class="lbl">අංකය <i>/</i> இல. <i>/</i> No.:</span>
+          <span class="no-val" data-bind="nicNo"></span>
+        </div>
+
+        <div class="photo"><img data-bind-src="photo" alt="Photo" /></div>
+
+        <div class="fr-fields">
+          <div class="nm">
+            <span class="nm-lbl">නම</span>
+            <span class="nm-val si" data-bind="nameSi"></span>
+          </div>
+          <div class="nm">
+            <span class="nm-lbl">பெயர்</span>
+            <span class="nm-val ta" data-bind="nameTa"></span>
+          </div>
+          <div class="nm">
+            <span class="nm-lbl">Name</span>
+            <span class="nm-val en" data-bind="nameEn"></span>
+          </div>
+
+          <div class="row">
+            <span class="row-lbl">ස්ත්‍රී පුරුෂ භාවය <i>/</i> பால் <i>/</i> Sex :</span>
+            <span class="row-val">
+              <b data-bind="sexSi"></b> <i>/</i>
+              <b data-bind="sexTa"></b> <i>/</i>
+              <b data-bind="sexEn"></b>
+            </span>
+          </div>
+
+          <div class="row">
+            <span class="row-lbl">උපන් දිනය <i>/</i> பிறந்த திகதி <i>/</i> Date of Birth :</span>
+            <span class="row-val"><b data-bind="dob"></b></span>
+          </div>
+        </div>
+
+        <div class="fr-foot">
+          <span class="foot-lbl">දරන්නාගේ අත්සන <i>/</i> கையொப்பம் <i>/</i> Holder's Signature</span>
+          <span class="foot-sign"><img data-bind-src="signature" alt="" /></span>
+        </div>
+      </div>
+
+      <!-- ==================== BACK ==================== -->
+      <!-- "Address:" label, temple watermark & Act line are printed on back.png -->
+      <div class="face face--back">
+
+        <div class="addr">
+          <span class="si" data-bind="addressSi"></span>
+          <span class="ta" data-bind="addressTa"></span>
+          <span class="en" data-bind="addressEn"></span>
+        </div>
+
+        <div class="serials">
+          <b data-bind="serialOld"></b> &nbsp;&nbsp; <b data-bind="serialAlt"></b>
+        </div>
+        <div class="vserial" data-bind="serialVertical"></div>
+
+        <div class="issue">
+          <span class="row2-lbl">නිකුත් කල දිනය <i>/</i> வழங்கிய திகதி <i>/</i> Date of Issue :</span>
+          <span class="row2-val" data-bind="dateOfIssue"></span>
+        </div>
+
+        <div class="place">
+          <span class="row2-lbl">උපන් ස්ථානය <i>/</i> பிறந்த இடம் <i>/</i> Place of Birth :</span>
+          <span class="row2-val">
+            <b data-bind="placeSi"></b> <i>/</i>
+            <b data-bind="placeTa"></b> <i>/</i>
+            <b data-bind="placeEn"></b>
+          </span>
+        </div>
+
+        <div class="commissioner">
+          <span class="cg-sign"><img data-bind-src="commissionerSign" alt="" /></span>
+          <span class="cg-lbl">කොමසාරිස් ජනරාල්<br>ஆணையாளர் தலைமையதிபதி<br>Commissioner General</span>
+        </div>
+
+        <div class="barcode"><img data-bind-src="barcode" alt="" /></div>
+      </div>
+
+    </div>
+  </div>
+
+  <button id="flipBtn" class="flip-btn">Flip &nbsp;/&nbsp; පෙරළන්න &#8635;</button>
+  <div class="hint">Edit <code>data.js</code> (or feed it from your database) to change every detail.</div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

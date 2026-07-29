@@ -1,0 +1,159 @@
+### Government Mock APIs — REST Client Test File
+### Install the "REST Client" extension in VS Code to use this file.
+### Click "Send Request" above any block to run it.
+
+@drp = http://localhost:8081/api
+@dmt = http://localhost:8082/api
+@apiKey = dl-gov-secret-key-change-in-production
+
+# ─────────────────────────────────────────
+#  HEALTH CHECKS
+# ─────────────────────────────────────────
+
+### DRP Health
+GET {{drp}}/health
+X-Gov-Api-Key: {{apiKey}}
+
+###
+
+### DMT Health
+GET {{dmt}}/health
+X-Gov-Api-Key: {{apiKey}}
+
+# ─────────────────────────────────────────
+#  DRP — CITIZENS
+# ─────────────────────────────────────────
+
+### List all citizens (paginated)
+GET {{drp}}/citizens?page=1&limit=20
+X-Gov-Api-Key: {{apiKey}}
+
+###
+
+### Get citizen by NIC
+GET {{drp}}/citizens/nic/198522405678
+X-Gov-Api-Key: {{apiKey}}
+
+###
+
+### Get citizen by UUID (replace with actual ID)
+GET {{drp}}/citizens/5997302d-2ef1-49eb-9703-4844f1f9fff7
+X-Gov-Api-Key: {{apiKey}}
+
+###
+
+### Create a new citizen
+POST {{drp}}/citizens
+X-Gov-Api-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "full_name": "S.M. SILVA",
+  "name_on_card": "S.M. Silva",
+  "gender": "FEMALE",
+  "date_of_birth": "1992-04-18",
+  "nic": "199204500123",
+  "ic_number": "IC-0000003",
+  "place_of_birth": "Kandy",
+  "district_of_birth": "Kandy",
+  "address_house": "15/B",
+  "address_road": "Peradeniya Road",
+  "address_city": "Kandy",
+  "address_postal_code": "20000",
+  "issued_date": "2015-06-10"
+}
+
+###
+
+### Update a citizen (replace UUID)
+PUT {{drp}}/citizens/5997302d-2ef1-49eb-9703-4844f1f9fff7
+X-Gov-Api-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "address_city": "Colombo 05",
+  "address_postal_code": "00500"
+}
+
+###
+
+### Test: No API key (should return 401)
+GET {{drp}}/citizens
+
+###
+
+### Test: Wrong API key (should return 401)
+GET {{drp}}/citizens
+X-Gov-Api-Key: wrong-key
+
+# ─────────────────────────────────────────
+#  DMT — VEHICLE CLASSES
+# ─────────────────────────────────────────
+
+### List all 14 vehicle class definitions
+GET {{dmt}}/vehicle-classes
+X-Gov-Api-Key: {{apiKey}}
+
+# ─────────────────────────────────────────
+#  DMT — DRIVING LICENCES
+# ─────────────────────────────────────────
+
+### List all licences
+GET {{dmt}}/licences?page=1&limit=20
+X-Gov-Api-Key: {{apiKey}}
+
+###
+
+### Get licence by NIC
+GET {{dmt}}/licences/nic/198503402948
+X-Gov-Api-Key: {{apiKey}}
+
+###
+
+### Get licence by licence number
+GET {{dmt}}/licences/number/DL-9044231-X
+X-Gov-Api-Key: {{apiKey}}
+
+###
+
+### Get vehicle classes for a licence (replace UUID)
+GET {{dmt}}/licences/f3af8b74-c531-4c29-9859-7eb1d133a4cd/classes
+X-Gov-Api-Key: {{apiKey}}
+
+###
+
+### Create a new licence with vehicle classes
+POST {{dmt}}/licences
+X-Gov-Api-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "licence_number": "DL-1234567-B",
+  "nic": "199204500123",
+  "surname": "SILVA",
+  "other_names": "S.M.",
+  "full_name_on_card": "S.M. SILVA",
+  "gender": "FEMALE",
+  "date_of_birth": "1992-04-18",
+  "blood_group": "B+",
+  "height_ft": 5,
+  "height_inches": 4,
+  "permanent_address": "15/B, Peradeniya Road, Kandy",
+  "organ_donor": false,
+  "driver_restrictions": "NONE",
+  "vehicle_classes": [
+    { "class_code": "B",  "issued_date": "2018-03-22", "expiry_date": "2028-03-22" },
+    { "class_code": "A1", "issued_date": "2018-03-22", "expiry_date": "2028-03-22" }
+  ]
+}
+
+###
+
+### Add extra vehicle classes to existing licence (replace UUID)
+POST {{dmt}}/licences/f3af8b74-c531-4c29-9859-7eb1d133a4cd/classes
+X-Gov-Api-Key: {{apiKey}}
+Content-Type: application/json
+
+[
+  { "class_code": "C", "issued_date": "2022-08-15", "expiry_date": "2032-08-15" }
+]

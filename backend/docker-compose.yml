@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+
+  app-mysql-db:
+    image: mysql:8.0
+    container_name: app_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: approot
+      MYSQL_DATABASE: digital_lanka_db
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+    volumes:
+      - app_mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - appnet
+
+  app-phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: app_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8083:80"
+    environment:
+      PMA_HOST: app-mysql-db
+      PMA_USER: root
+      PMA_PASSWORD: approot
+    networks:
+      - appnet
+    depends_on:
+      - app-mysql-db
+
+networks:
+  appnet:
+    driver: bridge
+
+volumes:
+  app_mysql_data:

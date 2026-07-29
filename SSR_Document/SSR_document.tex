@@ -1,0 +1,207 @@
+\documentclass[12pt, a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+
+% --- Layout & Formatting ---
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small Digital Lanka SRS v1.0}
+\lhead{\small Integrated Traffic \& Asset Management System}
+\rfoot{\thepage}
+
+\titleformat{\section}{\normalfont\Large\bfseries\color{black}}{\thesection}{1em}{}[{\titlerule[0.8pt]}]
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries\itshape}{\thesubsubsection}{1em}{}
+
+% --- Code Block Styling ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeblue}{rgb}{0,0,0.8}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+
+\lstset{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{purple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+% --- Document Details ---
+\title{
+    \vspace{2cm}
+    \textbf{\huge Software Requirements Specification (SRS)}\\
+    \vspace{0.5cm}
+    \large Digital Lanka: Integrated Traffic \& Asset Management System\\
+    \vspace{1.5cm}
+    \large \textbf{Comprehensive Architecture \& Systems Engineering Report}
+}
+\author{
+     Author : \textbf{Harishun}\\
+     Faculty of Science, University of Colombo 
+}
+\date{}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+\tableofcontents
+\newpage
+
+% =========================================================================
+\section{Executive Summary \& Architectural Axioms}
+% =========================================================================
+The Digital Lanka platform is a centralized government infrastructure engineered to decouple the legal ownership of vehicular assets from their operational authorization. It provides real-time compliance tracking, decentralized access sharing, and cryptographic field enforcement tools for traffic authorities. 
+
+The core architecture is built upon three fundamental design axioms derived from structural first principles:
+\begin{enumerate}[label=\textbf{Axiom \arabic*:}]
+    \item \textbf{The Universal Identifier:} The National Identity Card (NIC) acts as the absolute, immutable primary key across all system contexts. There are no custom, user-defined pseudonyms. All relational tables (assets, authorizations, records) map strictly back to this token.
+    \item \textbf{The Axiom of Statelessness:} HTTP communications are strictly stateless. Session states are not maintained inside server-side memory. Authentication relies entirely on signed JSON Web Tokens (JWT) that safely package the user's NIC and active role, validated at the API Gateway layer using an asymmetric private/public key setup.
+    \item \textbf{The Axiom of Prerequisite Operation:} The system enforces a strict temporal dependency. A civilian's operational ledger remains locked in the database until a valid \texttt{DrivingLicense} entity linked to their NIC achieves an \texttt{ACTIVE} state. 
+\end{enumerate}
+
+% =========================================================================
+\section{Role-Based Access Control (RBAC) Matrix}
+% =========================================================================
+System accessibility is governed by a secure, non-overlapping Role-Based Access Control architecture. Endpoints extract and decode the token payload before firing SQL queries.
+
+\vspace{0.4cm}
+\begin{tabularx}{\textwidth}{|l|X|X|}
+\hline
+\textbf{Role Flag} & \textbf{Operational Scope} & \textbf{Provisioning Protocol} \\ \hline
+\texttt{ROLE\_SUPER\_ADMIN} & Direct system configuration, database seeding, manual creation of Standard Admins. & Hardcoded database seed script triggered only on baseline deployment. \\ \hline
+\texttt{ROLE\_ADMIN} & Auditing civilian document uploads, validating manual fine clearances, and manually provisioning field Officers. & Created strictly via the secure dashboard of an authenticated Super Admin. \\ \hline
+\texttt{ROLE\_USER} & Account initialization, vehicle asset mapping, access delegation, and upload of manual fine payment slips. & Publicly accessible self-registration portal with SMS OTP validation. \\ \hline
+\texttt{ROLE\_OFFICER} & Accessing the 5-minute time-locked Compliance Hub, issuing citations, and executing stolen broadcasts. & Elevated from an existing General User profile by a verified Admin. \\ \hline
+\end{tabularx}
+\vspace{0.4cm}
+
+% =========================================================================
+\section{Database State Machines}
+% =========================================================================
+To maintain perfect data integrity, system entities do not experience arbitrary mutations. They transition along deterministic state vectors.
+
+\subsection{User Account Lifecycle}
+$$\text{UNVERIFIED} \xrightarrow{\text{Valid OTP Input}} \text{ACTIVE}$$
+
+\subsection{Asset \& Driving License Lifecycle}
+$$\text{NULL} \xrightarrow{\text{Binary Upload}} \text{PENDING\_VERIFICATION} \begin{cases} 
+\xrightarrow{\text{Admin Match Success}} \text{ACTIVE} \\
+\xrightarrow{\text{Admin Match Mismatch}} \text{REJECTED} 
+\end{cases}$$
+
+\subsection{Citation Penalty Lifecycle}
+$$\text{NULL} \xrightarrow{\text{Officer Issue}} \text{PENDING\_PAYMENT} \xrightarrow{\text{Receipt Upload}} \text{VERIFYING} \xrightarrow{\text{Admin Clear}} \text{CLEARED}$$
+
+\newpage
+
+% =========================================================================
+\section{Deep Functional Module Specifications}
+% =========================================================================
+
+\subsection{Module 1: Civilian Profile \& Authentication}
+Handles the initial secure onboarding, credential management, and identity verification of citizens.
+\begin{itemize}
+    \item \textbf{Data Payload Inputs:} NIC (Primary Key, String), Password (Plaintext, String), Full Legal Name (String), Mobile Number (String), Email (String), Profession (String), Permanent Address (String), Residential Address (String), Blood Group (Enum), Emergency Contacts (JSON String), Medical Comments (String).
+    \item \textbf{Core Logic:}
+    \begin{enumerate}
+        \item The backend validates Sri Lankan NIC string formats (9 digits + V/X or 12 digits).
+        \item Explicit database constraints enforce uniqueness on the NIC, Mobile, and Email fields to eliminate identity duplication.
+        \item The plaintext password is encrypted via the **BCrypt** algorithm before write operations occur.
+        \item The profile defaults to \texttt{UNVERIFIED}. A 6-digit cryptographic token is cached in memory with a 5-minute Time-To-Live (TTL). Upon matching via the user input, the status changes to \texttt{ACTIVE}.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Module 2: Driving License Verification}
+Acts as the gatekeeper for the operational capabilities of any registered driver.
+\begin{itemize}
+    \item \textbf{Data Payload Inputs:} License Number (String, Unique), Issued Date (Date), Expiry Date (Date), Permitted Vehicle Classes (Array of Enums, e.g., B, A), Front Image (Binary File), Back Image (Binary File).
+    \item \textbf{Core Logic:}
+    \begin{enumerate}
+        \item Image assets are extracted and stored in an isolated local file path or object store. The database records only the absolute file path strings.
+        \item The state initializes as \texttt{PENDING\_VERIFICATION}. A database check blocks this user's NIC from showing up on any vehicle sharing or operation matrix.
+        \item An Admin opens their portal, evaluates the textual fields alongside the visual elements of the card, and clicks "Approve" to activate the record.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Module 3: Vehicle Registration \& Asset Verification}
+Maps physical vehicular property to a citizen while enforcing strict administrative compliance.
+\begin{itemize}
+    \item \textbf{Data Payload Inputs:} Custom Name (String), Make (String), Model (String), Chassis Number (String, Unique), Plate Number (String, Unique). Document Metadata and Images for: Vehicle Registration Certificate (VRC), Insurance Policy, Revenue License, Emissions Certificate.
+    \item \textbf{Core Logic:}
+    \begin{enumerate}
+        \item The engine rejects processing if the Chassis or Plate strings match an active record.
+        \item The asset status defaults to \texttt{PENDING\_VERIFICATION}.
+        \item \textbf{The Strict Matching Rule:} The Administrator's verification view renders the user's primary profile name directly alongside the document images. The Admin must verify that the name matches **identically**. Any string divergence mandates a rejection flag, returning the vehicle to a modified draft state.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Module 4: Multi-Driver Authorization \& Stolen Tracking Engine}
+Manages the temporary or permanent delegation of operational rights and handles severe asset security alerts.
+
+
+\subsection{Module 5: Field Enforcement \& Penalty Lifecycle}
+Provides operational tools to traffic units while preserving user data isolation.
+\begin{itemize}
+    \item \textbf{The Compliance Check:} When an Officer searches a plate, the backend starts a strict **5-minute countdown timer**. The Officer can view baseline compliance markers (Insurance/Revenue statuses), blood group, and valid operators. When the timer hits zero, the frontend view cache is completely cleared to safeguard civilian privacy.
+    \item \textbf{Citation Processing:} If an infraction is observed, the Officer selects the violation type. The system locks down the immutable GPS coordinates and timestamp. A unique \texttt{payment\_reference\_number} is generated, pushing a \texttt{PENDING\_PAYMENT} status card to the citizen's application.
+    \item \textbf{MVP Manual Resolution:} The citizen pays the fine at a post office/bank, keys in the manual reference receipt string, and uploads an image of the physical document. An Admin evaluates the image against the record and marks it \texttt{CLEARED}.
+\end{itemize}
+
+\subsection{Module 6: Institutional Provisioning}
+Provides absolute isolation against public manipulation by keeping critical administrative onboarding workflows entirely top-down.
+\begin{itemize}
+    \item \textbf{Admin Provisioning:} Standard Admins cannot sign up. A Super Admin must log into their access management panel, enter the target's NIC, official email, and department, and assign a temporary password. The system records the profile with \texttt{ROLE\_ADMIN}.
+    \item \textbf{Officer Provisioning:} The target police officer must first create a standard citizen account using their NIC. A verified Admin then accesses the secure internal roster tool, inputs the target's NIC, and maps their official Batch Number, Rank, and Police Station. The system mutates the database row from \texttt{ROLE\_USER} to \texttt{ROLE\_OFFICER}. Upon their next login, the frontend system unlocks the dark-blue duty dashboard.
+\end{itemize}
+
+% =========================================================================
+\section{Non-Functional Specifications \& Architecture Lifecycle}
+% =========================================================================
+
+\subsection{Technical Stack Architecture (MVP)}
+The development roadmap follows a Free and Open Source Software (FOSS) infrastructure:
+\begin{itemize}
+    \item \textbf{Backend Core Engine:} Spring Boot (Java) or Fast API (Python) configured as a stateless REST service layer.
+    \item \textbf{Database Persistence Layer:} PostgreSQL or MySQL database utilizing connection pooling.
+    \item \textbf{Storage Layer:} Local file systems or MinIO object storage to hold document binaries, tracking relative location URLs as strings inside tables to prevent database bloat.
+\end{itemize}
+
+\subsection{Future Implementation Lifecycle Phases}
+\begin{itemize}
+    \item \textbf{Phase 2 (Automation \& In-App Settlement):} Deployment of open-source OCR pipelines to cross-reference document images automatically against input metadata strings. Integration of programmatic digital payment gateways (GovPay/LankaQR webhooks) to clear citations automatically.
+    \item \textbf{Phase 3 (Government Ecosystem API Federation):}
+    \begin{itemize}
+        \item \textit{DMT Integration:} Instant, direct validation of licenses and VRC data via NIC lookup webhooks, removing the requirement for manual user text entry or image uploads.
+        \item \textit{Judicial API:} Automatic streaming of severe infractions into court systems, updating the citizen's dashboard with court dates and mandates.
+        \item \textit{Police HR Bridge:} Seamless, automated conversion of General Users to active Officers via automated graduation webhooks fired directly from the Police Academy training servers.
+    \end{itemize}
+\end{itemize}
+
+\end{document}

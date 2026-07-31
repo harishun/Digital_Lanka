@@ -1,7 +1,7 @@
 :root {
   --font-public-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   
-  /* Brand Colors from DESIGN.md */
+  /* Brand Colors from DESIGN.md (Light Mode) */
   --c-bg: #faf8ff;
   --c-surface: #ffffff;
   --c-surface-dim: #dad9e0;
@@ -11,6 +11,13 @@
   --c-text: #1a1b20;
   --c-text-variant: #444650;
   --c-text-bright: #00113a;
+  
+  /* Card Specific Tokens (Light Mode) */
+  --c-card-bg: #ffffff;
+  --c-card-sub-bg: #f8fafc;
+  --c-card-border: #cbd5e1;
+  --c-card-text: #0f172a;
+  --c-card-subtext: #64748b;
   
   /* Semantic Colors */
   --danger: #ba1a1a;
@@ -26,6 +33,35 @@
   box-sizing: border-box;
 }
 
+/* ── NIGHT / DARK MODE THEME TOKENS ────────────────────────────────────── */
+[data-theme="dark"] {
+  --c-bg: #090d16;
+  --c-surface: #111b2e;
+  --c-surface-dim: #1e293b;
+  --c-primary: #3b82f6;
+  --c-on-primary: #ffffff;
+  --c-secondary: #94a3b8;
+  --c-text: #e2e8f0;
+  --c-text-variant: #94a3b8;
+  --c-text-bright: #ffffff;
+  
+  /* Card Specific Tokens (Dark Mode) */
+  --c-card-bg: #131b2e;
+  --c-card-sub-bg: #1e293b;
+  --c-card-border: #334155;
+  --c-card-text: #f8fafc;
+  --c-card-subtext: #94a3b8;
+  
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  
+  --glass-bg: rgba(19, 27, 46, 0.95);
+  --glass-border: #1e293b;
+  --glass-shadow: 0px 12px 36px rgba(0, 0, 0, 0.55);
+  --outline: #334155;
+}
+
 *, *:before, *:after {
   box-sizing: inherit;
 }
@@ -38,6 +74,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom Scrollbar */
@@ -47,31 +84,31 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f4f3f9;
+  background: var(--c-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c5c6d2;
+  background: var(--outline);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a4a5b2;
+  background: var(--c-secondary);
 }
 
 /* Card Container from DESIGN.md */
 .glass-card {
   background: var(--c-surface);
   border: 1px solid var(--glass-border);
-  border-radius: 8px; /* Soft 0.25rem roundness on large containers */
+  border-radius: 8px;
   box-shadow: var(--glass-shadow);
-  padding: 32px; /* 32px internal padding */
+  padding: 32px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
   border-color: var(--outline);
-  box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.08);
+  box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 /* Institutional Buttons */
@@ -84,7 +121,7 @@ body {
   font-size: 14px;
   letter-spacing: 0.02em;
   padding: 12px 24px;
-  border-radius: 4px; /* 4px radius on small elements */
+  border-radius: 4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -93,9 +130,9 @@ body {
 }
 
 .btn-primary:hover {
-  background: #00174a;
+  filter: brightness(1.15);
   transform: translateY(-1px);
-  box-shadow: 0px 4px 12px rgba(0, 35, 102, 0.15);
+  box-shadow: 0px 4px 12px rgba(0, 35, 102, 0.3);
 }
 
 .btn-primary:active {
@@ -103,8 +140,8 @@ body {
 }
 
 .btn-secondary {
-  background: #ffffff;
-  color: var(--c-primary);
+  background: var(--c-surface);
+  color: var(--c-text);
   border: 1px solid var(--glass-border);
   font-family: var(--font-public-sans);
   font-weight: 600;
@@ -118,8 +155,22 @@ body {
 }
 
 .btn-secondary:hover {
-  background: #f4f3f9;
+  background: var(--c-surface-dim);
   border-color: var(--outline);
+}
+
+/* Dark Mode Inputs & Selects Override */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] option {
+  background-color: #1e293b;
+  color: #f8fafc;
 }
 
 /* Animations */

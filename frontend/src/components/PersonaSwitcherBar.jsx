@@ -15,7 +15,7 @@ export default function PersonaSwitcherBar({ currentNic, handlePersonaChange, pe
         marginBottom: '32px', 
         borderRadius: '12px', 
         border: '1px solid var(--glass-border)', 
-        background: 'rgba(255, 255, 255, 0.85)' 
+        background: 'rgba(21, 5, 110, 0.85)' 
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

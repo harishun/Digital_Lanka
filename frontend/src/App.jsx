@@ -15,9 +15,23 @@ import OfficerDashboard from './components/OfficerDashboard';
 function App() {
   const [activeTab, setActiveTab] = useState('CITIZEN'); // 'CITIZEN' | 'OFFICER'
 
+  // Night Mode / Theme State
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('digital_lanka_theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('digital_lanka_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
   const [currentNic, setCurrentNic] = useState(() => {
     const saved = localStorage.getItem('current_user_nic');
-    const activeNics = ['197204509123', '198503402948', '199003402948'];
+    const activeNics = ['197204509123', '198503402948', '199003402948', '198012304958', '199556708123', '200508901234'];
     if (!saved || !activeNics.includes(saved)) {
       localStorage.setItem('current_user_nic', '197204509123');
       return '197204509123';
@@ -63,8 +77,8 @@ function App() {
 
   useEffect(() => {
     loadData();
-    // Poll updates every 8 seconds to keep notification & access tables synced without backend overload
-    const interval = setInterval(loadData, 8000);
+    // Sync polling loop every 3 seconds for instant notification & authorization updates
+    const interval = setInterval(loadData, 3000);
     return () => clearInterval(interval);
   }, [currentNic]);
 
@@ -72,36 +86,21 @@ function App() {
     try {
       const citizen = api.getCitizen(currentNic);
       setCurrentUser(citizen);
-    } catch (err) {
-      console.warn("Failed to load citizen profile:", err.message);
-    }
 
-    try {
-      const ownedList = await api.getVehiclesOwned(currentNic);
-      setVehicles(ownedList || []);
-    } catch (err) {
-      console.warn("Failed to load owned vehicles:", err.message);
-    }
+      // Concurrent parallel data fetching for zero lag
+      const [ownedRes, invRes, notifRes, authVehRes] = await Promise.allSettled([
+        api.getVehiclesOwned(currentNic),
+        api.getPendingInvitations(currentNic),
+        api.getMyNotifications(currentNic),
+        api.getVehiclesAuthorizedToDrive(currentNic)
+      ]);
 
-    try {
-      const invList = await api.getPendingInvitations(currentNic);
-      setIncomingInvitations(invList || []);
+      if (ownedRes.status === 'fulfilled') setVehicles(ownedRes.value || []);
+      if (invRes.status === 'fulfilled') setIncomingInvitations(invRes.value || []);
+      if (notifRes.status === 'fulfilled') setNotifications(notifRes.value || []);
+      if (authVehRes.status === 'fulfilled') setAuthorizedVehicles(authVehRes.value || []);
     } catch (err) {
-      console.warn("Failed to load invitations:", err.message);
-    }
-
-    try {
-      const notifList = await api.getMyNotifications(currentNic);
-      setNotifications(notifList || []);
-    } catch (err) {
-      console.warn("Failed to load notifications:", err.message);
-    }
-
-    try {
-      const authVehList = await api.getVehiclesAuthorizedToDrive(currentNic);
-      setAuthorizedVehicles(authVehList || []);
-    } catch (err) {
-      console.warn("Failed to load authorized vehicles:", err.message);
+      console.warn("Error during parallel data load:", err.message);
     }
   };
 
@@ -252,8 +251,8 @@ function App() {
             Integrated Government Services — DMT Registry, Law Enforcement & Citizen Authorizations
           </p>
 
-          {/* Navigation Bar Tabs: Citizen Portal vs Officer Dashboard */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
+          {/* Navigation Bar Tabs: Citizen Portal vs Officer Dashboard & Night Mode Toggle */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setActiveTab('CITIZEN')}
               style={{
@@ -265,9 +264,9 @@ function App() {
                 fontSize: '14px',
                 fontWeight: '700',
                 cursor: 'pointer',
-                border: activeTab === 'CITIZEN' ? '2px solid var(--c-primary)' : '1px solid #cbd5e1',
-                background: activeTab === 'CITIZEN' ? 'var(--c-primary)' : '#ffffff',
-                color: activeTab === 'CITIZEN' ? '#ffffff' : '#334155',
+                border: activeTab === 'CITIZEN' ? '2px solid var(--c-primary)' : '1px solid var(--glass-border)',
+                background: activeTab === 'CITIZEN' ? 'var(--c-primary)' : 'var(--c-surface)',
+                color: activeTab === 'CITIZEN' ? '#ffffff' : 'var(--c-text)',
                 boxShadow: activeTab === 'CITIZEN' ? '0 4px 14px rgba(0, 35, 102, 0.25)' : 'none',
                 transition: 'all 0.2s ease'
               }}
@@ -287,15 +286,41 @@ function App() {
                 fontSize: '14px',
                 fontWeight: '700',
                 cursor: 'pointer',
-                border: activeTab === 'OFFICER' ? '2px solid #0f172a' : '1px solid #cbd5e1',
-                background: activeTab === 'OFFICER' ? '#0f172a' : '#ffffff',
-                color: activeTab === 'OFFICER' ? '#ffffff' : '#334155',
+                border: activeTab === 'OFFICER' ? '2px solid #0f172a' : '1px solid var(--glass-border)',
+                background: activeTab === 'OFFICER' ? '#0f172a' : 'var(--c-surface)',
+                color: activeTab === 'OFFICER' ? '#ffffff' : 'var(--c-text)',
                 boxShadow: activeTab === 'OFFICER' ? '0 4px 14px rgba(15, 23, 42, 0.3)' : 'none',
                 transition: 'all 0.2s ease'
               }}
             >
               <span className="material-icons" style={{ fontSize: '20px', color: activeTab === 'OFFICER' ? '#60a5fa' : 'inherit' }}>local_police</span>
               Officer Dashboard
+            </button>
+
+            {/* Night Mode / Light Mode Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'light' ? 'Night' : 'Light'} Mode`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '11px 20px',
+                borderRadius: '30px',
+                fontSize: '13.5px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: '1px solid var(--glass-border)',
+                background: theme === 'dark' ? '#1e293b' : '#ffffff',
+                color: theme === 'dark' ? '#f8fafc' : '#334155',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.25s ease'
+              }}
+            >
+              <span className="material-icons" style={{ fontSize: '19px', color: theme === 'dark' ? '#fbbf24' : '#002366' }}>
+                {theme === 'dark' ? 'wb_sunny' : 'dark_mode'}
+              </span>
+              <span>{theme === 'dark' ? 'Light Mode' : 'Night Mode'}</span>
             </button>
           </div>
         </div>
@@ -325,6 +350,7 @@ function App() {
                   handleNextVehicle={handleNextVehicle}
                   openAccessControlModal={openAccessControlModal}
                   openDocModal={openDocModal}
+                  handleMarkAsStolen={handleMarkAsStolen}
                   isModalOpen={isDocModalOpen || isAccessControlModalOpen}
                 />
 

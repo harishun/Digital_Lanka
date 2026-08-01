@@ -33,7 +33,7 @@ services:
       - mysql_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d
     ports:
-      - "3306:3306"   # localhost only — remove in production
+      - "3308:3306"   # localhost only — remove in production
     networks:
       - govnet
     healthcheck:
@@ -48,7 +48,7 @@ services:
     container_name: gov_phpmyadmin
     restart: unless-stopped
     ports:
-      - "8080:80"     # localhost only — remove in production
+      - "8084:80"     # localhost only — remove in production
     environment:
       PMA_HOST: mysql-db
       PMA_PORT: 3306

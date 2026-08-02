@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import * as api from '../services/api';
 
-const VehicleRegistrationForm = ({ currentNic }) => {
+const VehicleRegistrationForm = ({ currentNic, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     customName: '',
     make: '',
     model: '',
     chassisNumber: '',
     plateNumber: '',
-    vrcPath: '',
-    insurancePath: '',
-    revenueLicensePath: '',
-    emissionsPath: ''
+    color: ''
   });
 
   const [status, setStatus] = useState({ type: '', message: '' });
@@ -34,21 +31,39 @@ const VehicleRegistrationForm = ({ currentNic }) => {
         model: '',
         chassisNumber: '',
         plateNumber: '',
-        vrcPath: '',
-        insurancePath: '',
-        revenueLicensePath: '',
-        emissionsPath: ''
+        color: ''
       });
+      if (onSuccess) {
+        setTimeout(onSuccess, 1500);
+      }
     } catch (err) {
       setStatus({ type: 'error', message: err.message });
     }
   };
 
   return (
-    <div className="glass-card" style={{ marginTop: '24px' }}>
-      <h3 style={{ marginTop: 0, color: 'var(--c-primary)' }}>Vehicle Registration & Asset Verification</h3>
+    <div className="glass-card" style={{ marginTop: '0', position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <h3 style={{ margin: 0, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="material-icons">directions_car</span>
+          Register New Vehicle
+        </h3>
+        
+        {onClose && (
+          <button 
+            type="button"
+            onClick={onClose} 
+            className="btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', padding: '6px 12px' }}
+          >
+            <span className="material-icons" style={{ fontSize: '16px' }}>arrow_back</span>
+            Back to Dashboard
+          </button>
+        )}
+      </div>
+      
       <p style={{ color: 'var(--c-secondary)', fontSize: '14px', marginBottom: '24px' }}>
-        Register your vehicle asset by providing the details and simulated document paths below.
+        Register your vehicle asset by providing the vehicle details below.
       </p>
 
       {status.message && (
@@ -80,30 +95,13 @@ const VehicleRegistrationForm = ({ currentNic }) => {
           <label style={{ fontSize: '12px', fontWeight: 600 }}>Model</label>
           <input required name="model" value={formData.model} onChange={handleChange} placeholder="Vezel" style={inputStyle} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', gridColumn: '1 / -1' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <label style={{ fontSize: '12px', fontWeight: 600 }}>Chassis Number</label>
           <input required name="chassisNumber" value={formData.chassisNumber} onChange={handleChange} placeholder="CHA-998822110-B" style={inputStyle} />
         </div>
-
-        {/* Document URLs - Simulating MVP String paths */}
-        <h4 style={{ gridColumn: '1 / -1', margin: '12px 0 0 0', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-          Document Metadata (URLs)
-        </h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600 }}>VRC Image Path</label>
-          <input required name="vrcPath" value={formData.vrcPath} onChange={handleChange} placeholder="/assets/vrc.pdf" style={inputStyle} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600 }}>Insurance Policy Path</label>
-          <input required name="insurancePath" value={formData.insurancePath} onChange={handleChange} placeholder="/assets/insurance.pdf" style={inputStyle} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600 }}>Revenue License Path</label>
-          <input required name="revenueLicensePath" value={formData.revenueLicensePath} onChange={handleChange} placeholder="/assets/revenue.pdf" style={inputStyle} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600 }}>Emissions Certificate Path</label>
-          <input required name="emissionsPath" value={formData.emissionsPath} onChange={handleChange} placeholder="/assets/emissions.pdf" style={inputStyle} />
+          <label style={{ fontSize: '12px', fontWeight: 600 }}>Color</label>
+          <input required name="color" value={formData.color} onChange={handleChange} placeholder="White" style={inputStyle} />
         </div>
 
         <div style={{ gridColumn: '1 / -1', marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>

@@ -78,7 +78,7 @@ public class DataSeeder {
                         .placeOfBirth("Colombo General Hospital")
                         .bloodGroup("B+")
                         .donor(true)
-                        .role(Role.ROOT_ADMIN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"A1\",\"description\":\"Light Motorcycle\",\"issuedDate\":\"1995-04-10\",\"expiryDate\":\"2032-06-15\"},{\"classCode\":\"A\",\"description\":\"Motorcycle\",\"issuedDate\":\"1995-04-10\",\"expiryDate\":\"2032-06-15\"},{\"classCode\":\"B\",\"description\":\"Passenger Car\",\"issuedDate\":\"1995-04-10\",\"expiryDate\":\"2032-06-15\"},{\"classCode\":\"G1\",\"description\":\"Two Wheel Tractor\",\"issuedDate\":\"2000-01-15\",\"expiryDate\":\"2032-06-15\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());

@@ -19,25 +19,5 @@ services:
       - ./database/01_digital_lanka_app_db.sql:/docker-entrypoint-initdb.d/01_digital_lanka_app_db.sql
       - app_db_data:/var/lib/mysql
 
-  # ────────────────────────────────────────────────────────────
-  # 2. DMT Statutory Mock Registry Database Service
-  #    (Mounts SQL schema directly from government-mock-apis/)
-  # ────────────────────────────────────────────────────────────
-  dmt-mock-db:
-    image: mysql:8.0
-    container_name: dmt_mock_db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: dmt_mock_db
-      MYSQL_USER: dmt_user
-      MYSQL_PASSWORD: dmtpassword
-    ports:
-      - "3307:3306"
-    volumes:
-      - ./government-mock-apis/mysql-init/02_dmt_schema.sql:/docker-entrypoint-initdb.d/02_dmt_schema.sql
-      - dmt_db_data:/var/lib/mysql
-
 volumes:
   app_db_data:
-  dmt_db_data:

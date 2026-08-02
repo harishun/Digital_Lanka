@@ -16,7 +16,8 @@ export default function VehicleCarousel({
   openAccessControlModal,
   openDocModal,
   handleMarkAsStolen,
-  isModalOpen = false
+  isModalOpen = false,
+  onRegisterClick
 }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -58,7 +59,21 @@ export default function VehicleCarousel({
             </span>
           )}
         </div>
+        
+        {/* Register New Vehicle Button */}
+        {onRegisterClick && (
+          <button 
+            onClick={onRegisterClick}
+            className="btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer' }}
+          >
+            <span className="material-icons" style={{ fontSize: '16px' }}>add_circle</span>
+            Register New Vehicle
+          </button>
+        )}
+      </div>
 
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
         {vehicles.length > 1 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--c-secondary)', marginRight: '4px' }}>

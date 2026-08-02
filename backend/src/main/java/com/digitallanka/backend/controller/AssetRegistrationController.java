@@ -32,20 +32,4 @@ public class AssetRegistrationController {
         }
     }
 
-    // Public endpoint, so ideally we permit all in security config.
-    // For this prototype, we'll keep it simple.
-    @PostMapping("/public-verify")
-    public ResponseEntity<?> verifyVehicleRegistration(@RequestBody VerificationRequest request) {
-        boolean isRegistered = assetVerificationService.verifyPublicRegistration(request.getPlateNumber(), request.getNic());
-        return ResponseEntity.ok(Map.of(
-            "plateNumber", request.getPlateNumber(),
-            "isRegisteredAndActive", isRegistered
-        ));
-    }
-
-    @lombok.Data
-    public static class VerificationRequest {
-        private String plateNumber;
-        private String nic;
-    }
 }

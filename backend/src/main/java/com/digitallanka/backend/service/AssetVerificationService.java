@@ -29,18 +29,4 @@ public class AssetVerificationService {
         return vehicleAssetRepository.save(asset);
     }
 
-    /**
-     * Verifies if a vehicle is registered based on plate number and owner NIC.
-     */
-    public boolean verifyPublicRegistration(String plateNumber, String ownerNic) {
-        Optional<VehicleAsset> vehicleAssetOpt = vehicleAssetRepository.findByPlateNumber(plateNumber);
-        
-        if (vehicleAssetOpt.isPresent()) {
-            VehicleAsset asset = vehicleAssetOpt.get();
-            // Using OOP getter
-            return asset.getOwnerNic().equals(ownerNic) && asset.getStatus() == Asset.AssetStatus.ACTIVE;
-        }
-        
-        return false;
-    }
 }

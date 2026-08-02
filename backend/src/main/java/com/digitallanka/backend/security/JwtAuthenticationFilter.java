@@ -1,6 +1,6 @@
 package com.digitallanka.backend.security;
 
-import com.digitallanka.backend.model.User;
+import com.digitallanka.backend.entity.User;
 import com.digitallanka.backend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

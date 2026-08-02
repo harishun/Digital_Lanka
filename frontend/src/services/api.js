@@ -550,6 +550,8 @@ export const inviteDriver = async (ownerNic, vehicleId, targetNic, accessType, s
 };
 
 export const respondToInvitation = async (authId, accept, driverNic) => {
+  const targetAuth = FALLBACK_AUTHORIZATIONS.find(a => String(a.id) === String(authId) || String(a.authorizationId) === String(authId));
+
   try {
     const token = await loginAndGetToken(driverNic);
     if (token) {
@@ -564,20 +566,33 @@ export const respondToInvitation = async (authId, accept, driverNic) => {
 
       if (response.ok) {
         const resData = await response.json();
-        // Generate response notification to vehicle owner
-        const driverName = DEFAULT_CITIZENS[driverNic] ? DEFAULT_CITIZENS[driverNic].fullName : driverNic;
-        const targetAuth = FALLBACK_AUTHORIZATIONS.find(a => a.id === authId || a.authorizationId === authId);
-        if (targetAuth) {
-          addLocalNotification(targetAuth.ownerNic, {
-            id: "notif_" + Date.now(),
-            type: "AUTHORIZATION",
-            title: accept ? "Driving Invitation Accepted" : "Driving Invitation Declined",
-            message: `${driverName} ${accept ? 'accepted' : 'declined'} your driving authorization request for vehicle ${targetAuth.vehicleId}.`,
-            referenceId: authId,
-            isRead: false,
-            createdAt: new Date().toISOString()
-          });
-        }
+        
+        const ownerNic = targetAuth ? targetAuth.ownerNic : '197204509123';
+        const vehiclePlate = targetAuth ? (targetAuth.plateNumber || targetAuth.vehicleId) : 'Vehicle';
+        const driverName = DEFAULT_CITIZENS[driverNic] ? DEFAULT_CITIZENS[driverNic].fullName : `Driver (${driverNic})`;
+
+        // Broadcast notification to vehicle owner
+        addLocalNotification(ownerNic, {
+          id: "notif_" + Date.now() + "_owner",
+          type: "AUTHORIZATION",
+          title: accept ? "Driving Invitation Accepted 🎉" : "Driving Invitation Declined ❌",
+          message: `${driverName} (NIC: ${driverNic}) has ${accept ? 'ACCEPTED' : 'DECLINED'} your driving authorization request for vehicle ${vehiclePlate}.`,
+          referenceId: authId,
+          isRead: false,
+          createdAt: new Date().toISOString()
+        });
+
+        // Broadcast notification to responding driver
+        addLocalNotification(driverNic, {
+          id: "notif_" + Date.now() + "_driver",
+          type: "AUTHORIZATION",
+          title: accept ? "Invitation Accepted ✅" : "Invitation Declined ❌",
+          message: `You have ${accept ? 'ACCEPTED' : 'DECLINED'} the driving invitation for vehicle ${vehiclePlate}.`,
+          referenceId: authId,
+          isRead: false,
+          createdAt: new Date().toISOString()
+        });
+
         return resData;
       }
     }
@@ -585,22 +600,37 @@ export const respondToInvitation = async (authId, accept, driverNic) => {
     console.warn("Backend respondToInvitation failed, updating local fallback:", e.message);
   }
 
-  const targetAuth = FALLBACK_AUTHORIZATIONS.find(a => a.id === authId);
-  FALLBACK_AUTHORIZATIONS = FALLBACK_AUTHORIZATIONS.map(a => a.id === authId ? { ...a, status: accept ? 'GRANTED' : 'DECLINED' } : a);
+  FALLBACK_AUTHORIZATIONS = FALLBACK_AUTHORIZATIONS.map(a => 
+    (String(a.id) === String(authId) || String(a.authorizationId) === String(authId)) 
+      ? { ...a, status: accept ? 'GRANTED' : 'DECLINED' } 
+      : a
+  );
 
-  // Generate response notification to vehicle owner
-  const driverName = DEFAULT_CITIZENS[driverNic] ? DEFAULT_CITIZENS[driverNic].fullName : driverNic;
-  if (targetAuth) {
-    addLocalNotification(targetAuth.ownerNic, {
-      id: "notif_" + Date.now(),
-      type: "AUTHORIZATION",
-      title: accept ? "Driving Invitation Accepted" : "Driving Invitation Declined",
-      message: `${driverName} ${accept ? 'accepted' : 'declined'} your driving authorization request for vehicle ${targetAuth.vehicleId}.`,
-      referenceId: authId,
-      isRead: false,
-      createdAt: new Date().toISOString()
-    });
-  }
+  const ownerNic = targetAuth ? targetAuth.ownerNic : '197204509123';
+  const vehiclePlate = targetAuth ? (targetAuth.plateNumber || targetAuth.vehicleId) : 'Vehicle';
+  const driverName = DEFAULT_CITIZENS[driverNic] ? DEFAULT_CITIZENS[driverNic].fullName : `Driver (${driverNic})`;
+
+  // Broadcast notification to vehicle owner
+  addLocalNotification(ownerNic, {
+    id: "notif_" + Date.now() + "_owner",
+    type: "AUTHORIZATION",
+    title: accept ? "Driving Invitation Accepted 🎉" : "Driving Invitation Declined ❌",
+    message: `${driverName} (NIC: ${driverNic}) has ${accept ? 'ACCEPTED' : 'DECLINED'} your driving authorization request for vehicle ${vehiclePlate}.`,
+    referenceId: authId,
+    isRead: false,
+    createdAt: new Date().toISOString()
+  });
+
+  // Broadcast notification to responding driver
+  addLocalNotification(driverNic, {
+    id: "notif_" + Date.now() + "_driver",
+    type: "AUTHORIZATION",
+    title: accept ? "Invitation Accepted ✅" : "Invitation Declined ❌",
+    message: `You have ${accept ? 'ACCEPTED' : 'DECLINED'} the driving invitation for vehicle ${vehiclePlate}.`,
+    referenceId: authId,
+    isRead: false,
+    createdAt: new Date().toISOString()
+  });
 
   return { message: accept ? "Invitation accepted" : "Invitation declined" };
 };

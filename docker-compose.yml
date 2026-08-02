@@ -1,23 +1,30 @@
 version: '3.8'
-
 services:
-  # ────────────────────────────────────────────────────────────
-  # 1. Digital Lanka Application Database Service
-  # ────────────────────────────────────────────────────────────
-  digital-lanka-db:
+  mysql:
     image: mysql:8.0
-    container_name: digital_lanka_db
-    restart: always
+    container_name: digitallanka-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: digital_lanka_db
-      MYSQL_USER: lanka_user
-      MYSQL_PASSWORD: lankapassword
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: digitallanka
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password
     ports:
       - "3306:3306"
     volumes:
-      - ./database/01_digital_lanka_app_db.sql:/docker-entrypoint-initdb.d/01_digital_lanka_app_db.sql
-      - app_db_data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: digitallanka-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: admin
+      PMA_PASSWORD: password
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
 
 volumes:
-  app_db_data:
+  mysql-data:

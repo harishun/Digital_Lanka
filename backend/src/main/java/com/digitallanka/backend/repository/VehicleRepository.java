@@ -1,13 +1,12 @@
 package com.digitallanka.backend.repository;
 
-/**
- * VehicleRepository — REMOVED.
- *
- * Vehicles are now sourced from the DMT Mock Government API via GovApiClient.
- * This interface is kept as an empty placeholder to prevent compilation errors
- * in any class that still injects it (those classes will be updated to remove
- * the injection).
- *
- * Do NOT add any JPA repository methods here.
- */
-public interface VehicleRepository {}
+import com.digitallanka.backend.entity.Vehicle;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface VehicleRepository extends JpaRepository<Vehicle, String> {
+    Optional<Vehicle> findByPlateNo(String plateNo);
+}

@@ -33,7 +33,7 @@ services:
       - mysql_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d
     ports:
-      - "3306:3306"   # localhost only — remove in production
+      - "3308:3306"   # localhost only — remove in production
     networks:
       - govnet
     healthcheck:

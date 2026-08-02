@@ -12,10 +12,10 @@ import DocumentDetailsModal from './components/DocumentDetailsModal';
 import AccessControlModal from './components/AccessControlModal';
 import OfficerDashboard from './components/OfficerDashboard';
 import VehicleRegistrationForm from './components/VehicleRegistrationForm';
-import PublicVehicleVerification from './components/PublicVehicleVerification';
 
 function App() {
   const [activeTab, setActiveTab] = useState('CITIZEN'); // 'CITIZEN' | 'OFFICER'
+  const [isRegistrationFormOpen, setIsRegistrationFormOpen] = useState(false);
 
   const [currentNic, setCurrentNic] = useState(() => {
     const saved = localStorage.getItem('current_user_nic');
@@ -119,6 +119,7 @@ function App() {
     const nextNic = e.target.value;
     setCurrentNic(nextNic);
     setActiveVehicleIndex(0);
+    setIsRegistrationFormOpen(false);
     localStorage.setItem('current_user_nic', nextNic);
   };
 
@@ -315,28 +316,39 @@ function App() {
             {/* Main Two-Column Layout */}
             <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '32px' }}>
               
-              {/* Left Column: Vehicle Carousel & Shared Vehicles */}
+              {/* Left Column: Vehicle Carousel & Shared Vehicles OR Registration Form */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 
-                {/* Reusable Vehicle Carousel Component */}
-                <VehicleCarousel
-                  vehicles={vehicles}
-                  activeVehicleIndex={activeVehicleIndex}
-                  setActiveVehicleIndex={setActiveVehicleIndex}
-                  handlePrevVehicle={handlePrevVehicle}
-                  handleNextVehicle={handleNextVehicle}
-                  openAccessControlModal={openAccessControlModal}
-                  openDocModal={openDocModal}
-                  isModalOpen={isDocModalOpen || isAccessControlModalOpen}
-                />
+                {isRegistrationFormOpen ? (
+                  <VehicleRegistrationForm 
+                    currentNic={currentNic} 
+                    onClose={() => setIsRegistrationFormOpen(false)} 
+                    onSuccess={() => {
+                      setIsRegistrationFormOpen(false);
+                      loadData();
+                    }}
+                  />
+                ) : (
+                  <>
+                    {/* Reusable Vehicle Carousel Component */}
+                    <VehicleCarousel
+                      vehicles={vehicles}
+                      activeVehicleIndex={activeVehicleIndex}
+                      setActiveVehicleIndex={setActiveVehicleIndex}
+                      handlePrevVehicle={handlePrevVehicle}
+                      handleNextVehicle={handleNextVehicle}
+                      openAccessControlModal={openAccessControlModal}
+                      openDocModal={openDocModal}
+                      isModalOpen={isDocModalOpen || isAccessControlModalOpen}
+                      onRegisterClick={() => setIsRegistrationFormOpen(true)}
+                    />
 
-                {/* Reusable Shared Vehicles Component */}
-                <SharedVehiclesList
-                  authorizedVehicles={authorizedVehicles}
-                />
-
-                {/* Module 3: Vehicle Registration Form */}
-                <VehicleRegistrationForm currentNic={currentNic} />
+                    {/* Reusable Shared Vehicles Component */}
+                    <SharedVehiclesList
+                      authorizedVehicles={authorizedVehicles}
+                    />
+                  </>
+                )}
 
               </div>
 
@@ -399,9 +411,6 @@ function App() {
           statusMessage={statusMessage}
           isError={isError}
         />
-
-        {/* Module 3: Public Vehicle Verification */}
-        <PublicVehicleVerification />
 
       </div>
     </div>

@@ -31,16 +31,6 @@ public class VehicleAsset extends Asset {
     @Column(nullable = false, unique = true)
     private String plateNumber;
 
-    // MVP Architecture: Storing relative URLs or paths as strings
-    @Column(name = "vrc_path")
-    private String vrcPath;
-
-    @Column(name = "insurance_path")
-    private String insurancePath;
-
-    @Column(name = "revenue_license_path")
-    private String revenueLicensePath;
-
-    @Column(name = "emissions_path")
-    private String emissionsPath;
+    @Column(nullable = false)
+    private String color;
 }

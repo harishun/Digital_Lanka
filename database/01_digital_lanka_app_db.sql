@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS vehicle_authorizations (
     start_time          DATETIME        NULL,
     end_time            DATETIME        NULL,
     created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE,
     FOREIGN KEY (owner_nic) REFERENCES citizens(nic) ON DELETE CASCADE,
     FOREIGN KEY (authorized_nic) REFERENCES citizens(nic) ON DELETE CASCADE

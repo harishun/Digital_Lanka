@@ -11,6 +11,8 @@ import NotificationsInbox from './components/NotificationsInbox';
 import DocumentDetailsModal from './components/DocumentDetailsModal';
 import AccessControlModal from './components/AccessControlModal';
 import OfficerDashboard from './components/OfficerDashboard';
+import VehicleRegistrationForm from './components/VehicleRegistrationForm';
+import PublicVehicleVerification from './components/PublicVehicleVerification';
 
 function App() {
   const [activeTab, setActiveTab] = useState('CITIZEN'); // 'CITIZEN' | 'OFFICER'
@@ -333,6 +335,9 @@ function App() {
                   authorizedVehicles={authorizedVehicles}
                 />
 
+                {/* Module 3: Vehicle Registration Form */}
+                <VehicleRegistrationForm currentNic={currentNic} />
+
               </div>
 
               {/* Right Column: Citizen Profile & Inbox */}
@@ -394,6 +399,9 @@ function App() {
           statusMessage={statusMessage}
           isError={isError}
         />
+
+        {/* Module 3: Public Vehicle Verification */}
+        <PublicVehicleVerification />
 
       </div>
     </div>

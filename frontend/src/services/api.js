@@ -796,3 +796,52 @@ export const submitProofOfPayment = (citationId, receiptImage) => {
   saveDb('dl_citations', citations);
   return citations[idx];
 };
+
+// ── Module 3: Vehicle Registration & Asset Verification ───────────────────────
+
+export const registerVehicleAsset = async (vehicleData, currentNic) => {
+  try {
+    const token = await loginAndGetToken(currentNic);
+    if (!token) throw new Error("Authentication failed");
+
+    const response = await fetch(`${API_BASE_URL}/assets/register-vehicle`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(vehicleData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to register vehicle");
+    }
+
+    return await response.json();
+  } catch (err) {
+    console.error("Backend registerVehicleAsset failed:", err.message);
+    throw err;
+  }
+};
+
+export const publicVerifyVehicle = async (plateNumber, nic) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/assets/public-verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ plateNumber, nic })
+    });
+
+    if (response.ok) {
+      return await response.json();
+    }
+    return { isRegisteredAndActive: false };
+  } catch (err) {
+    console.error("Backend publicVerifyVehicle failed:", err.message);
+    return { isRegisteredAndActive: false, error: err.message };
+  }
+};
+

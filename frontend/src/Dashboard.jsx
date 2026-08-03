@@ -4,7 +4,7 @@ import { Camera, Search, AlertTriangle, ShieldCheck, Clock, MapPin, CheckCircle,
 import CitizenProfileCard from './components/CitizenProfileCard';
 import NicCard from './components/NicCard/NicCard';
 
-function Dashboard({ setToken }) {
+function Dashboard({ setToken, onSwitchToCitizen }) {
   const [plateNo, setPlateNo] = useState('');
   const [dlNo, setDlNo] = useState('');
   const [plateImage, setPlateImage] = useState(null);
@@ -290,9 +290,19 @@ function Dashboard({ setToken }) {
           <ShieldCheck size={28} className="text-blue-300" />
           <h1 className="text-xl font-bold tracking-wider">DIGITAL LANKA - ENFORCEMENT</h1>
         </div>
-        <button onClick={handleLogout} className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition">
-          End Shift
-        </button>
+        <div className="flex items-center gap-3">
+          {onSwitchToCitizen && (
+            <button
+              onClick={onSwitchToCitizen}
+              className="text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2 transform active:scale-95 border border-blue-400"
+            >
+              <span>👤 My Citizen Portal</span>
+            </button>
+          )}
+          <button onClick={handleLogout} className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition">
+            End Shift
+          </button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto mt-8 p-4">
@@ -300,7 +310,7 @@ function Dashboard({ setToken }) {
         {!sessionActive && (
           <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-darkBlue animate-fade-in">
             <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2 text-darkBlue">
-              <Search size={24} /> Compliance Check
+              <Search size={24} /> Compliance Check & Citation
             </h2>
             <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
@@ -315,18 +325,18 @@ function Dashboard({ setToken }) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Driver NIC Number</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Driver NIC / DL Number</label>
                 <input 
                   type="text" 
                   required
                   value={dlNo}
                   onChange={(e) => setDlNo(e.target.value.toUpperCase())}
-                  placeholder="e.g. 197204509123"
+                  placeholder="e.g. 197204509123 or DL-123"
                   className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-darkBlue focus:border-darkBlue transition uppercase"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="block text-sm font-medium text-gray-600 mb-1">Plate Capture</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Vehicle Photo / Plate Capture (Evidence)</label>
                 <div className="w-full p-2 border border-dashed border-gray-400 rounded-lg text-gray-500 hover:bg-gray-50 flex justify-center items-center transition">
                   <input 
                     type="file" 

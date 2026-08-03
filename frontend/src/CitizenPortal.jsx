@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from './api';
 import { User, FileText, Upload, CheckCircle, Clock } from 'lucide-react';
 
-function CitizenPortal({ setToken }) {
+function CitizenPortal({ setToken, isOfficer, onSwitchToOfficer }) {
   const [citations, setCitations] = useState([]);
   const [receiptFile, setReceiptFile] = useState(null);
   const [selectedCitationId, setSelectedCitationId] = useState(null);
@@ -54,9 +54,19 @@ function CitizenPortal({ setToken }) {
           <User size={28} className="text-blue-300" />
           <h1 className="text-xl font-bold tracking-wider">CITIZEN PORTAL</h1>
         </div>
-        <button onClick={handleLogout} className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition">
-          Logout
-        </button>
+        <div className="flex items-center gap-3">
+          {isOfficer && (
+            <button
+              onClick={onSwitchToOfficer}
+              className="text-sm bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2 transform active:scale-95"
+            >
+              <span>👮‍♂️ Officer Dashboard (Penalty Citation)</span>
+            </button>
+          )}
+          <button onClick={handleLogout} className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition">
+            Logout
+          </button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto mt-8 p-4">

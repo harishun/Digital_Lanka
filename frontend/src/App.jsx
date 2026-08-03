@@ -7,6 +7,7 @@ import AdminPortal from './AdminPortal';
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const role = localStorage.getItem('role');
+  const [officerMode, setOfficerMode] = useState('citizen'); // Default to Citizen Portal for officers
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -16,11 +17,23 @@ function App() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  const isOfficer = role === 'ROLE_OFFICER' || role === 'POLICE_OFFICER';
+
   let content;
   if (!token) {
     content = <Login setToken={setToken} />;
-  } else if (role === 'ROLE_OFFICER') {
-    content = <Dashboard setToken={setToken} />;
+  } else if (isOfficer) {
+    if (officerMode === 'officer') {
+      content = <Dashboard setToken={setToken} onSwitchToCitizen={() => setOfficerMode('citizen')} />;
+    } else {
+      content = (
+        <CitizenPortal
+          setToken={setToken}
+          isOfficer={true}
+          onSwitchToOfficer={() => setOfficerMode('officer')}
+        />
+      );
+    }
   } else if (role === 'ROLE_CITIZEN') {
     content = <CitizenPortal setToken={setToken} />;
   } else if (role === 'ROLE_ADMIN') {

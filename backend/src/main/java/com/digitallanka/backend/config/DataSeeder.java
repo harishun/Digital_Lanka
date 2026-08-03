@@ -263,6 +263,17 @@ public class DataSeeder {
                 licenseRepository.save(License.builder()
                         .dlNo("DL-5544332-E").driver(shenali).validOperators("B").build());
             }
+            if (licenseRepository.findByDlNo("DL-POL-001").isEmpty()) {
+                licenseRepository.save(License.builder()
+                        .dlNo("DL-POL-001").driver(officerBandara).validOperators("A, B").build());
+            }
+            if (vehicleRepository.findById("WP POL-001").isEmpty()) {
+                vehicleRepository.save(Vehicle.builder()
+                        .plateNo("WP POL-001").plateNumber("WP POL-001")
+                        .owner(officerBandara).model("Toyota Hilux (Police Patrol)").vehicleClass("B")
+                        .fuelType("Diesel").status("ACTIVE")
+                        .insuranceStatus("VALID").revenueStatus("VALID").build());
+            }
         };
     }
 }

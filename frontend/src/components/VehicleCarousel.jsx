@@ -16,6 +16,7 @@ export default function VehicleCarousel({
   openAccessControlModal,
   openDocModal,
   handleMarkAsStolen,
+  handleReportRetrieval,
   isModalOpen = false,
   onRegisterClick
 }) {
@@ -118,7 +119,11 @@ export default function VehicleCarousel({
             }}
           >
             {vehicles.map((v, idx) => {
-              const isStolen = v.status?.toUpperCase() === 'STOLEN';
+              const vehicleStatus = v.status?.toUpperCase() || 'ACTIVE';
+              const isStolen = vehicleStatus === 'STOLEN';
+              // Owner says it is back, but law enforcement has not verified it yet.
+              const isAwaitingVerification = vehicleStatus === 'RETRIEVAL_REPORTED';
+              const isFlagged = isStolen || isAwaitingVerification;
               return (
                 <div 
                   key={v.id || v.plateNumber || idx} 
@@ -145,6 +150,56 @@ export default function VehicleCarousel({
                     }}
                   >
                     <div>
+                      {/* Reported-stolen banner — the vehicle's state has to be
+                          obvious on the card itself, not just in the status tag. */}
+                      {isFlagged && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            background: isStolen ? 'rgba(220, 38, 38, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                            border: `1px solid ${isStolen ? 'rgba(220, 38, 38, 0.4)' : 'rgba(245, 158, 11, 0.45)'}`,
+                            borderLeft: `4px solid ${isStolen ? '#dc2626' : '#f59e0b'}`,
+                            borderRadius: '8px',
+                            padding: '10px 14px',
+                            marginBottom: '14px'
+                          }}
+                        >
+                          <span
+                            className="material-icons"
+                            style={{ color: isStolen ? '#dc2626' : '#b45309', fontSize: '20px' }}
+                          >
+                            {isStolen ? 'report_problem' : 'hourglass_top'}
+                          </span>
+                          <div>
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: '12.5px',
+                                fontWeight: '800',
+                                color: isStolen ? '#b91c1c' : '#b45309',
+                                letterSpacing: '0.3px'
+                              }}
+                            >
+                              {isStolen ? 'REPORTED STOLEN' : 'RETRIEVAL REPORTED — AWAITING POLICE VERIFICATION'}
+                            </p>
+                            <p
+                              style={{
+                                margin: '2px 0 0 0',
+                                fontSize: '11px',
+                                color: isStolen ? '#b91c1c' : '#b45309',
+                                lineHeight: '1.35'
+                              }}
+                            >
+                              {isStolen
+                                ? 'This vehicle is flagged in the national database. Law enforcement may seize it on sight. Report retrieval once it is back in your possession.'
+                                : 'Your retrieval report has been received. The vehicle stays flagged until an officer verifies the recovery — visit your nearest police station with the vehicle and your documents.'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Top Row: Plate Badge, Model & Status */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--c-card-border, #f1f5f9)', paddingBottom: '12px', marginBottom: '14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -159,11 +214,11 @@ export default function VehicleCarousel({
                           </div>
                         </div>
 
-                        <span className={`status-tag ${isStolen ? 'stolen' : 'active'}`} style={{ padding: '3px 10px', fontSize: '11px' }}>
+                        <span className={`status-tag ${isFlagged ? 'stolen' : 'active'}`} style={{ padding: '3px 10px', fontSize: '11px' }}>
                           <span className="material-icons" style={{ fontSize: '13px' }}>
-                            {isStolen ? 'warning' : 'check_circle'}
+                            {isStolen ? 'warning' : isAwaitingVerification ? 'hourglass_top' : 'check_circle'}
                           </span>
-                          {v.status || 'ACTIVE'}
+                          {isAwaitingVerification ? 'AWAITING VERIFICATION' : (v.status || 'ACTIVE')}
                         </span>
                       </div>
 
@@ -245,26 +300,48 @@ export default function VehicleCarousel({
                       </div>
                     </div>
 
-                    {/* Dual Primary Action Buttons Side-by-Side: REPORT STOLEN (First) & ACCESS CONTROL */}
+                    {/* Dual Primary Action Buttons Side-by-Side.
+                        The first button flips with the vehicle's state: report it
+                        stolen while active, report it retrieved once it is flagged. */}
                     <div style={{ marginTop: 'auto', display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '10px' }}>
-                      <button 
-                        onClick={() => handleMarkAsStolen(v.id || v.plateNumber)} 
-                        className="btn-primary" 
-                        style={{ 
-                          width: '100%', 
-                          justifyContent: 'center', 
-                          padding: '11px 8px', 
-                          fontSize: '11.5px', 
-                          fontWeight: '800', 
-                          borderRadius: '8px', 
-                          background: isStolen ? '#b91c1c' : '#dc2626',
-                          color: '#ffffff',
-                          letterSpacing: '0.3px' 
+                      <button
+                        onClick={() => {
+                          if (isAwaitingVerification) return;
+                          isStolen
+                            ? handleReportRetrieval(v.id || v.plateNumber)
+                            : handleMarkAsStolen(v.id || v.plateNumber);
                         }}
-                        title={isStolen ? 'Vehicle is currently flagged as STOLEN' : 'Click to report vehicle as STOLEN'}
+                        disabled={isAwaitingVerification}
+                        className="btn-primary"
+                        style={{
+                          width: '100%',
+                          justifyContent: 'center',
+                          padding: '11px 8px',
+                          fontSize: '11.5px',
+                          fontWeight: '800',
+                          borderRadius: '8px',
+                          background: isAwaitingVerification ? '#94a3b8' : isStolen ? '#16a34a' : '#dc2626',
+                          color: '#ffffff',
+                          letterSpacing: '0.3px',
+                          cursor: isAwaitingVerification ? 'not-allowed' : 'pointer',
+                          opacity: isAwaitingVerification ? 0.75 : 1
+                        }}
+                        title={
+                          isAwaitingVerification
+                            ? 'Retrieval reported — an officer must verify the recovery'
+                            : isStolen
+                            ? 'Vehicle recovered? Report the retrieval'
+                            : 'Click to report vehicle as STOLEN'
+                        }
                       >
-                        <span className="material-icons" style={{ fontSize: '16px' }}>report_problem</span>
-                        {isStolen ? 'STOLEN' : 'REPORT STOLEN'}
+                        <span className="material-icons" style={{ fontSize: '16px' }}>
+                          {isAwaitingVerification ? 'hourglass_top' : isStolen ? 'check_circle' : 'report_problem'}
+                        </span>
+                        {isAwaitingVerification
+                          ? 'AWAITING VERIFICATION'
+                          : isStolen
+                          ? 'REPORT RETRIEVAL'
+                          : 'REPORT STOLEN'}
                       </button>
 
                       <button 

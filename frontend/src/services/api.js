@@ -10,8 +10,8 @@ const API_BASE_URL = 'http://localhost:8085/api';
 // ── Citizen profiles (read-only reference data) ─────────────────────────────
 // Kept locally as the DRP mock API data rarely changes. Used for offline display.
 const DEFAULT_CITIZENS = {
-  "OFFICER_001": {
-    nic: "OFFICER_001",
+  "197828430012": {
+    nic: "197828430012",
     fullName: "INSPECTOR BANDARA",
     role: "ROLE_OFFICER",
     gender: "Male",
@@ -19,13 +19,45 @@ const DEFAULT_CITIZENS = {
     address: "Police HQ, Fort, Colombo 01",
     dateOfIssue: "1998-05-20",
     placeOfBirth: "Colombo",
-    licenseNumber: "DL-POL-001",
+    licenseNumber: "DL-1978284-B",
     bloodGroup: "O+",
     restrictions: "NONE",
     donor: true,
     vehicleClasses: [
       { classCode: "A", issuedDate: "1998-05-20", expiryDate: "2030-10-10", description: "Motor Cycles" },
       { classCode: "B", issuedDate: "1998-05-20", expiryDate: "2030-10-10", description: "Dual Purpose Vehicles" }
+    ]
+  },
+  "198515030045": {
+    nic: "198515030045",
+    fullName: "JOHN OFFICER",
+    role: "ROLE_OFFICER",
+    gender: "Male",
+    dateOfBirth: "1985-05-30",
+    address: "Traffic Division, Colombo 02",
+    dateOfIssue: "2006-02-14",
+    placeOfBirth: "Colombo",
+    licenseNumber: "—",
+    bloodGroup: "A+",
+    restrictions: "NONE",
+    donor: true,
+    vehicleClasses: []
+  },
+  "199012345678": {
+    nic: "199012345678",
+    fullName: "JOHN DOE",
+    role: "ROLE_CITIZEN",
+    gender: "Male",
+    dateOfBirth: "1990-05-03",
+    address: "123 Heritage Lane, Colombo",
+    dateOfIssue: "2010-08-19",
+    placeOfBirth: "Colombo General Hospital",
+    licenseNumber: "DL-1990123-D",
+    bloodGroup: "O+",
+    restrictions: "NONE",
+    donor: true,
+    vehicleClasses: [
+      { classCode: "B", issuedDate: "2010-08-19", expiryDate: "2030-05-03", description: "Dual Purpose Vehicles" }
     ]
   },
   "197204509123": {
@@ -705,6 +737,39 @@ export const reportVehicleStolen = async (vehicleId, ownerNic) => {
 
   LOCAL_APPLICATION_STOLEN_FLAGS[vehicleId] = 'STOLEN';
   return { message: "Vehicle marked as STOLEN in Application Database." };
+};
+
+/**
+ * Owner closes their own theft report once the vehicle is back in their hands.
+ * Resolves the pending TheftCase so the vehicle returns to ACTIVE.
+ */
+export const reportVehicleRetrieved = async (vehicleId, ownerNic, remarks = '') => {
+  try {
+    const token = resolveIdentity(ownerNic);
+    if (token) {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${encodeURIComponent(vehicleId)}/retrieved`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Nic': token
+        },
+        body: JSON.stringify({ remarks })
+      });
+
+      if (response.ok) {
+        LOCAL_APPLICATION_STOLEN_FLAGS[vehicleId] = 'ACTIVE';
+        return await response.json();
+      }
+
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Could not close the theft report.');
+    }
+  } catch (e) {
+    console.warn("Backend reportVehicleRetrieved failed, updating Application Database fallback:", e.message);
+  }
+
+  LOCAL_APPLICATION_STOLEN_FLAGS[vehicleId] = 'ACTIVE';
+  return { message: "Vehicle marked as RETRIEVED/ACTIVE in Application Database." };
 };
 
 /**

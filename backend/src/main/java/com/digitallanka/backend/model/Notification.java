@@ -39,6 +39,9 @@ public class Notification {
     public enum Type {
         INVITATION,
         STOLEN_ALERT,
+        CITATION,
+        SEIZURE,
+        RECOVERY,
         GENERAL
     }
 }

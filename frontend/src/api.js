@@ -10,8 +10,12 @@ api.interceptors.request.use((config) => {
   // The roadside enforcement endpoints are gated by a 5-minute, single-stop
   // session token (the privacy lockout), not by the caller's identity.
   const sessionToken = localStorage.getItem('sessionToken');
+  // Everything after /enforcement/search is scoped to that one stop, so it must
+  // carry the session token rather than the caller's identity.
   const isEnforcementSessionCall =
-    config.url.startsWith('/enforcement/details') || config.url.startsWith('/enforcement/citation');
+    config.url.startsWith('/enforcement/details') ||
+    config.url.startsWith('/enforcement/citation') ||
+    config.url.startsWith('/enforcement/seizure');
 
   if (isEnforcementSessionCall && sessionToken) {
     config.headers.Authorization = `Bearer ${sessionToken}`;

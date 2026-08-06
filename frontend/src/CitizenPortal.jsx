@@ -13,10 +13,9 @@ import NotificationsInbox from './components/NotificationsInbox';
 import DocumentDetailsModal from './components/DocumentDetailsModal';
 import AccessControlModal from './components/AccessControlModal';
 import VehicleRegistrationForm from './components/VehicleRegistrationForm';
-import OfficerSimulator from './components/OfficerDashboard';
 
 function CitizenPortal({ isOfficer, onSwitchToOfficer }) {
-  const [portalTab, setPortalTab] = useState('REGISTRY'); // 'REGISTRY' (Harishun & Achchuthan) | 'CITATIONS' (Ahkash) | 'SIMULATOR' (Achchuthan)
+  const [portalTab, setPortalTab] = useState('REGISTRY'); // 'REGISTRY' (Harishun & Achchuthan) | 'CITATIONS' (Ahkash)
   
   // Ahkash Citations State
   const [citations, setCitations] = useState([]);
@@ -166,6 +165,19 @@ function CitizenPortal({ isOfficer, onSwitchToOfficer }) {
     }
   };
 
+  const handleReportRetrieval = async (vehicleId) => {
+    if (!window.confirm("Confirm this vehicle is back in your possession? This will close your theft report and law enforcement will stop treating it as stolen.")) {
+      return;
+    }
+    try {
+      await registryApi.reportVehicleRetrieved(vehicleId, currentNic);
+      setIsAccessControlModalOpen(false);
+      loadRegistryData();
+    } catch (err) {
+      alert(`Failed to report vehicle retrieval: ${err.message}`);
+    }
+  };
+
   const handleGrantAccess = async (e) => {
     e.preventDefault();
     setStatusMessage('');
@@ -288,17 +300,6 @@ function CitizenPortal({ isOfficer, onSwitchToOfficer }) {
               <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{citations.length}</span>
             )}
           </button>
-
-          <button
-            onClick={() => setPortalTab('SIMULATOR')}
-            className={`px-4 py-2 rounded-full text-sm font-bold transition flex items-center gap-2 ${
-              portalTab === 'SIMULATOR'
-                ? 'bg-blue-600 text-white shadow-lg border-2 border-blue-400'
-                : 'bg-blue-900 text-blue-200 hover:bg-blue-800'
-            }`}
-          >
-            <span>🚓 DMT Officer Simulator</span>
-          </button>
         </div>
 
         <div className="flex items-center gap-3">
@@ -339,6 +340,7 @@ function CitizenPortal({ isOfficer, onSwitchToOfficer }) {
                     openAccessControlModal={openAccessControlModal}
                     openDocModal={openDocModal}
                     handleMarkAsStolen={handleMarkAsStolen}
+                    handleReportRetrieval={handleReportRetrieval}
                     isModalOpen={isDocModalOpen || isAccessControlModalOpen}
                     onRegisterClick={() => setIsRegistrationFormOpen(true)}
                   />
@@ -454,12 +456,6 @@ function CitizenPortal({ isOfficer, onSwitchToOfficer }) {
         </main>
       )}
 
-      {/* TAB 3: ACHCHUTHAN DMT OFFICER SIMULATOR */}
-      {portalTab === 'SIMULATOR' && (
-        <div className="max-w-7xl mx-auto mt-6 p-4 animate-fade-in">
-          <OfficerSimulator currentNic={currentNic} loadData={loadRegistryData} />
-        </div>
-      )}
     </div>
   );
 }

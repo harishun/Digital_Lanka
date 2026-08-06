@@ -12,6 +12,8 @@ import DocumentDetailsModal from './components/DocumentDetailsModal';
 import AccessControlModal from './components/AccessControlModal';
 import OfficerDashboard from './components/OfficerDashboard';
 import VehicleRegistrationForm from './components/VehicleRegistrationForm';
+import CitizenCitationsList from './components/CitizenCitationsList';
+
 
 function App() {
   const [activeTab, setActiveTab] = useState('CITIZEN'); // 'CITIZEN' | 'OFFICER'
@@ -374,6 +376,12 @@ function App() {
                 <CitizenProfileCard
                   currentUser={currentUser}
                 />
+
+                {/* Reusable Traffic Citations & Fine History Component */}
+                <CitizenCitationsList
+                  currentNic={currentNic}
+                />
+
 
                 {/* Reusable Notifications Inbox Component */}
                 <NotificationsInbox

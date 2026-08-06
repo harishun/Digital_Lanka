@@ -3,10 +3,10 @@ import * as api from '../services/api';
 import CitizenProfileCard from './CitizenProfileCard';
 
 /**
- * OfficerDashboard — Roadside Law Enforcement & Citation Panel from dev-ahkash.
- * Integrates 5-minute time-locked privacy session, ANPR plate search, 
- * violation checklist, fine calculator, revenue/insurance modals, and roadside seizure controls.
- * Uses Material Icons instead of external icon libraries.
+ * OfficerDashboard — Roadside Law Enforcement & Citation Panel.
+ * Features 5-minute time-locked privacy session, ANPR plate search,
+ * violation checklist, fine calculator, revenue/insurance modals, roadside seizure controls,
+ * and the Issued Citations History Register for the officer.
  */
 export default function OfficerDashboard({ currentNic, loadData, onSwitchToCitizen }) {
   const [plateNo, setPlateNo] = useState('');
@@ -27,16 +27,27 @@ export default function OfficerDashboard({ currentNic, loadData, onSwitchToCitiz
   const [showDropdown, setShowDropdown] = useState(false);
   const [citationDetails, setCitationDetails] = useState(null);
   const [shiftEnded, setShiftEnded] = useState(false);
+  const [issuedCitations, setIssuedCitations] = useState([]);
 
   const timerRef = useRef(null);
   const endShiftTimerRef = useRef(null);
 
+  const refreshIssuedCitations = () => {
+    try {
+      const list = api.getCitationsForOfficer(currentNic);
+      setIssuedCitations(list);
+    } catch (e) {
+      console.error("Failed to load officer citations", e);
+    }
+  };
+
   useEffect(() => {
+    refreshIssuedCitations();
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (endShiftTimerRef.current) clearTimeout(endShiftTimerRef.current);
     };
-  }, []);
+  }, [currentNic]);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -64,7 +75,6 @@ export default function OfficerDashboard({ currentNic, loadData, onSwitchToCitiz
     setCitationMsg('');
     try {
       const result = await api.queryCompliance(plateNo.trim(), dlNo.trim(), currentNic);
-      
       const citizenData = api.getCitizenProfile(dlNo.trim() || result.ownerNic);
       
       setData({
@@ -120,7 +130,8 @@ export default function OfficerDashboard({ currentNic, loadData, onSwitchToCitiz
           return sum + (fineVal === 'Court Fine' ? 0 : parseInt(fineVal || '0', 10));
         }, 0),
         "INSP. S. JAYASURIYA",
-        "POL-88219"
+        "POL-88219",
+        currentNic
       );
 
       setCitationDetails({
@@ -130,6 +141,7 @@ export default function OfficerDashboard({ currentNic, loadData, onSwitchToCitiz
         timestamp: new Date().toLocaleString()
       });
       setShowCitationModal(true);
+      refreshIssuedCitations();
     } catch (err) {
       setCitationMsg(err.message || 'Citation submission failed');
     }
@@ -513,6 +525,58 @@ export default function OfficerDashboard({ currentNic, loadData, onSwitchToCitiz
           </div>
         </div>
       )}
+
+      {/* ── OFFICER'S ISSUED CITATIONS REGISTER ── */}
+      <div className="glass-card" style={{ padding: '24px 28px', borderRadius: '16px', background: 'var(--c-card-bg, #ffffff)', border: '1px solid var(--c-card-border, #cbd5e1)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span className="material-icons" style={{ color: 'var(--c-primary)', fontSize: '24px' }}>assignment_turned_in</span>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '17px', fontWeight: '800', color: 'var(--c-card-text, #0f172a)' }}>
+                Officer Issued Citations & Violations Log
+              </h3>
+              <p style={{ margin: '2px 0 0 0', fontSize: '12.5px', color: 'var(--c-card-subtext, #64748b)' }}>
+                Registered roadside traffic citations issued by Insp. S. Jayasuriya
+              </p>
+            </div>
+          </div>
+
+          <span style={{ background: 'rgba(59, 130, 246, 0.12)', color: 'var(--c-primary)', fontSize: '12px', fontWeight: '800', padding: '3px 10px', borderRadius: '12px' }}>
+            {issuedCitations.length} TOTAL ISSUED
+          </span>
+        </div>
+
+        {issuedCitations.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '28px', background: 'var(--c-card-sub-bg, #f8fafc)', borderRadius: '12px', border: '1px dashed var(--c-card-border, #cbd5e1)' }}>
+            <span className="material-icons" style={{ fontSize: '32px', opacity: 0.3 }}>playlist_add_check</span>
+            <p style={{ margin: '8px 0 0 0', fontSize: '13px', fontWeight: '600', color: 'var(--c-card-subtext)' }}>No citations issued during this shift.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {issuedCitations.map(cit => (
+              <div key={cit.id || cit.referenceNumber} style={{ padding: '14px 18px', background: 'var(--c-card-sub-bg, #f8fafc)', borderRadius: '10px', border: '1px solid var(--c-card-border, #e2e8f0)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '900', color: '#dc2626', fontFamily: 'monospace' }}>{cit.referenceNumber}</span>
+                    <span style={{ fontSize: '10.5px', fontWeight: '800', color: cit.status === 'PAID' ? '#16a34a' : '#dc2626', background: cit.status === 'PAID' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)', padding: '2px 8px', borderRadius: '4px' }}>
+                      {cit.status}
+                    </span>
+                  </div>
+                  <h4 style={{ margin: '4px 0 2px 0', fontSize: '14px', fontWeight: '800', color: 'var(--c-card-text, #0f172a)' }}>{cit.nature}</h4>
+                  <span style={{ fontSize: '11.5px', color: 'var(--c-card-subtext, #64748b)' }}>
+                    Driver NIC: <strong>{cit.driverNic || '197204509123'}</strong> • Plate: <strong>{cit.plateNumber || 'WP CAD-1234'}</strong> • Location: {cit.place}
+                  </span>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '14px', fontWeight: '900', color: '#dc2626' }}>Rs {cit.amount?.toLocaleString()}</span>
+                  <div style={{ fontSize: '11px', color: 'var(--c-card-subtext)', marginTop: '2px' }}>{cit.date}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Citation Details Confirmation Modal */}
       {showCitationModal && citationDetails && (

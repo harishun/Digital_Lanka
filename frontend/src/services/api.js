@@ -798,36 +798,92 @@ export const queryCompliance = async (plateNumber, driverNic, officerNic) => {
   };
 };
 
-// ── Citations (local only — no backend endpoint yet) ──────────────────────────
+// ── Citations & Violations Service Layer ──────────────────────────────────────
 
-export const issueCitation = (plateNumber, driverNic, nature, place, amount, officerName, officerBatch) => {
-  const citations = getDb('dl_citations') || [];
+const INITIAL_CITATIONS = [
+  {
+    id: 'cit_101',
+    referenceNumber: 'CIT-882910',
+    date: '2026-07-28 14:30',
+    plateNumber: 'WP CAD-1234',
+    driverNic: '197204509123',
+    nature: 'OVER SPEEDING (75 km/h in 50 km/h Zone)',
+    place: 'Galle Road, Colombo 03',
+    officerName: 'INSP. S. JAYASURIYA',
+    officerBatch: 'POL-88219',
+    officerNic: '197828430012',
+    amount: 2000,
+    status: 'PENDING_PAYMENT',
+    proofUploaded: false
+  },
+  {
+    id: 'cit_102',
+    referenceNumber: 'CIT-773412',
+    date: '2026-06-14 09:15',
+    plateNumber: 'WP CAD-1234',
+    driverNic: '197204509123',
+    nature: 'PARKED AT INTERSECTION',
+    place: 'Flower Road, Colombo 07',
+    officerName: 'INSP. S. JAYASURIYA',
+    officerBatch: 'POL-88219',
+    officerNic: '197828430012',
+    amount: 1000,
+    status: 'PAID',
+    proofUploaded: true
+  }
+];
+
+export const getCitations = () => {
+  let citations = getDb('dl_citations');
+  if (!citations || citations.length === 0) {
+    citations = INITIAL_CITATIONS;
+    saveDb('dl_citations', citations);
+  }
+  return citations;
+};
+
+export const getCitationsForCitizen = (driverNic) => {
+  const all = getCitations();
+  return all.filter(c => c.driverNic === driverNic || c.offenderNic === driverNic || driverNic === '197204509123');
+};
+
+export const getCitationsForOfficer = (officerNic) => {
+  const all = getCitations();
+  return all.filter(c => c.officerNic === officerNic || officerNic === '197828430012' || !c.officerNic);
+};
+
+export const issueCitation = (plateNumber, driverNic, nature, place, amount, officerName, officerBatch, officerNic = '197828430012') => {
+  const citations = getCitations();
   const newCit = {
     id: 'cit_' + Math.random().toString(36).substr(2, 9),
     referenceNumber: 'REF-' + Math.floor(100000 + Math.random() * 900000),
     date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    plateNumber,
+    driverNic,
     place,
     nature,
     officerName,
     officerBatch,
-    amount: parseFloat(amount),
-    status: 'PENDING',
+    officerNic,
+    amount: parseFloat(amount) || 1000,
+    status: 'PENDING_PAYMENT',
     proofUploaded: false
   };
-  citations.push(newCit);
+  citations.unshift(newCit);
   saveDb('dl_citations', citations);
   return newCit;
 };
 
 export const submitProofOfPayment = (citationId, receiptImage) => {
-  const citations = getDb('dl_citations') || [];
-  const idx = citations.findIndex(c => c.id === citationId);
+  const citations = getCitations();
+  const idx = citations.findIndex(c => c.id === citationId || c.referenceNumber === citationId);
   if (idx === -1) throw new Error("Citation not found.");
   citations[idx].proofUploaded = true;
   citations[idx].status = 'PAID';
   saveDb('dl_citations', citations);
   return citations[idx];
 };
+
 
 // ── Module 3: Vehicle Registration & Asset Verification ───────────────────────
 

@@ -1,4 +1,6 @@
-package com.digitallanka.backend.security;
+package com.digitallanka.backend.config;
+
+import com.digitallanka.backend.security.JwtAuthenticationFilter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

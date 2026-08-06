@@ -128,13 +128,14 @@ export const getCitizen = (nic) => DEFAULT_CITIZENS[nic] || null;
 
 // ── JWT authentication helper ────────────────────────────────────────────────
 const loginAndGetToken = async (nic = null) => {
+  // If user is authenticated, we'll store their token as 'jwt_token' in localStorage.
+  // We can fallback to the nic-specific token if present, or return null if unauthenticated.
   const currentNic = nic || localStorage.getItem('current_user_nic') || '197204509123';
-  const tokenKey = `jwt_token_${currentNic}`;
-  let token = localStorage.getItem(tokenKey);
+  let token = localStorage.getItem('jwt_token') || localStorage.getItem(`jwt_token_${currentNic}`);
 
   if (!token) {
     try {
-      // Try login first
+      // Try login first (development automatic token acquisition)
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,7 +145,7 @@ const loginAndGetToken = async (nic = null) => {
       if (response.ok) {
         const data = await response.json();
         token = data.token;
-        localStorage.setItem(tokenKey, token);
+        localStorage.setItem(`jwt_token_${currentNic}`, token);
       } else {
         // Auto-register if not found
         const citizen = DEFAULT_CITIZENS[currentNic];
@@ -154,6 +155,7 @@ const loginAndGetToken = async (nic = null) => {
           body: JSON.stringify({
             nic: currentNic,
             password: 'dev_test@123',
+            confirmPassword: 'dev_test@123',
             email: currentNic === '197204509123' ? 'sugathadasa@gmail.com'
                  : currentNic === '198503402948' ? 'arjun@gmail.com'
                  : 'perera@gmail.com',
@@ -166,9 +168,7 @@ const loginAndGetToken = async (nic = null) => {
         if (regResponse.ok) {
           const data = await regResponse.json();
           token = data.token;
-          localStorage.setItem(tokenKey, token);
-        } else {
-          throw new Error("Unable to register session with backend.");
+          localStorage.setItem(`jwt_token_${currentNic}`, token);
         }
       }
     } catch (e) {
@@ -176,6 +176,78 @@ const loginAndGetToken = async (nic = null) => {
     }
   }
   return token;
+};
+
+// ── Auth Endpoint Exports ───────────────────────────────────────────────────
+export const checkNic = async (nic) => {
+  const response = await fetch(`${API_BASE_URL}/auth/check-nic`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nic })
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'NIC verification failed');
+  }
+  return await response.json();
+};
+
+export const register = async (nic, email, phone, password, confirmPassword) => {
+  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nic, email, phone, password, confirmPassword })
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Registration failed');
+  }
+  const data = await response.json();
+  if (data.token) {
+    localStorage.setItem('jwt_token', data.token);
+    localStorage.setItem('current_user_nic', nic);
+  }
+  return data;
+};
+
+export const login = async (nic, password) => {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nic, password })
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Login failed');
+  }
+  const data = await response.json();
+  if (data.token) {
+    localStorage.setItem('jwt_token', data.token);
+    localStorage.setItem('current_user_nic', nic);
+  }
+  return data;
+};
+
+export const logout = () => {
+  localStorage.removeItem('jwt_token');
+  localStorage.removeItem('current_user_nic');
+};
+
+export const registerVehicleAsset = async (assetData, ownerNic) => {
+  const token = await loginAndGetToken(ownerNic);
+  const response = await fetch(`${API_BASE_URL}/assets/register-vehicle`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(assetData)
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || errorData.message || 'Vehicle asset registration failed.');
+  }
+  return await response.json();
 };
 
 // ── Vehicle data (always fetched live from backend → DMT database) ────────────

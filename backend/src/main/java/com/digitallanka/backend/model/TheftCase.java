@@ -35,8 +35,23 @@ public class TheftCase {
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
+    @Column(name = "retrieval_reported_at")
+    private LocalDateTime retrievalReportedAt;
+
+    /**
+     * Lifecycle of a theft report.
+     *
+     * <p>{@link #RETRIEVAL_REPORTED} is deliberately NOT the end state: the owner
+     * saying they have the vehicle back is a claim, not a verification. The
+     * vehicle stays flagged to law enforcement until an officer resolves it, so
+     * a thief in possession of the owner's account cannot clear the flag.
+     */
     public enum Status {
+        /** Owner has reported the vehicle stolen. Flagged to law enforcement. */
         PENDING,
+        /** Owner says it is back. Still flagged, awaiting police verification. */
+        RETRIEVAL_REPORTED,
+        /** An officer has verified recovery. Vehicle is clear. */
         RESOLVED
     }
 }

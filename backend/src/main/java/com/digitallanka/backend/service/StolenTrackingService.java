@@ -16,6 +16,13 @@ import java.util.UUID;
 @Service
 public class StolenTrackingService {
 
+    /**
+     * States in which a vehicle is still flagged to law enforcement. A retrieval
+     * claim from the owner does NOT clear the flag — only an officer can.
+     */
+    private static final java.util.List<TheftCase.Status> OPEN_STATUSES =
+            java.util.List.of(TheftCase.Status.PENDING, TheftCase.Status.RETRIEVAL_REPORTED);
+
     @Autowired
     private TheftCaseRepository theftCaseRepository;
 
@@ -41,9 +48,9 @@ public class StolenTrackingService {
             throw new IllegalStateException("Only the registered owner can report a vehicle as stolen.");
         }
 
-        // 3. Prevent duplicate theft reports
+        // 3. Prevent duplicate theft reports (a case awaiting verification counts)
         boolean alreadyStolen = theftCaseRepository
-                .findByVehicleIdAndStatus(vehicleId, TheftCase.Status.PENDING)
+                .findByVehicleIdAndStatusIn(vehicleId, OPEN_STATUSES)
                 .isPresent();
         if (alreadyStolen) {
             throw new IllegalStateException("Vehicle is already marked as stolen.");
@@ -78,9 +85,10 @@ public class StolenTrackingService {
         govApiClient.getVehicleByPlate(vehicleId)
                 .orElseThrow(() -> new IllegalArgumentException("Vehicle not found in government records."));
 
-        // 3. Find the pending theft case
-        TheftCase theft = theftCaseRepository.findByVehicleIdAndStatus(vehicleId, TheftCase.Status.PENDING)
-                .orElseThrow(() -> new IllegalStateException("No pending theft case found for this vehicle."));
+        // 3. Find the open theft case — either still missing, or the owner has
+        //    reported retrieval and is waiting on this verification.
+        TheftCase theft = theftCaseRepository.findByVehicleIdAndStatusIn(vehicleId, OPEN_STATUSES)
+                .orElseThrow(() -> new IllegalStateException("No open theft case found for this vehicle."));
 
         // 4. Resolve the theft case
         theft.setStatus(TheftCase.Status.RESOLVED);
@@ -92,9 +100,54 @@ public class StolenTrackingService {
     }
 
     /**
+     * Lets the registered owner close their own theft report when they get the
+     * vehicle back without police involvement (found it, recovered privately,
+     * reported in error).
+     *
+     * <p>This does NOT clear the vehicle. It moves the case to
+     * {@code RETRIEVAL_REPORTED}, where the vehicle stays flagged to law
+     * enforcement until an officer verifies it via {@link #markRecovered}.
+     */
+    @Transactional
+    public TheftCase reportRetrievedByOwner(String ownerNic, String vehicleId, String remarks) {
+        // 1. Verify vehicle exists in DMT government database
+        VehicleRegistrationResponse vehicle = govApiClient.getVehicleByPlate(vehicleId)
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found in government records."));
+
+        // 2. Only the registered owner may close their own theft report
+        if (!vehicle.getOwnerNic().equals(ownerNic)) {
+            throw new IllegalStateException("Only the registered owner can report a vehicle as retrieved.");
+        }
+
+        // 3. There must be an active theft report to respond to
+        TheftCase theft = theftCaseRepository.findByVehicleIdAndStatus(vehicleId, TheftCase.Status.PENDING)
+                .orElseThrow(() -> new IllegalStateException(
+                        "This vehicle is not currently reported stolen, or retrieval has already been reported."));
+
+        theft.setStatus(TheftCase.Status.RETRIEVAL_REPORTED);
+        theft.setRetrievalReportedAt(LocalDateTime.now());
+        theft.setRemarks(remarks != null && !remarks.isBlank()
+                ? "Retrieval reported by owner: " + remarks
+                : "Retrieval reported by owner. Awaiting police verification.");
+
+        return theftCaseRepository.save(theft);
+    }
+
+    /**
      * Checks whether a vehicle currently has an active (PENDING) theft report.
      */
     public boolean isStolenVehicle(String vehicleId) {
-        return theftCaseRepository.findByVehicleIdAndStatus(vehicleId, TheftCase.Status.PENDING).isPresent();
+        return theftCaseRepository.findByVehicleIdAndStatusIn(vehicleId, OPEN_STATUSES).isPresent();
+    }
+
+    /** The current open theft case for a vehicle, if any. */
+    public java.util.Optional<TheftCase> findOpenCase(String vehicleId) {
+        return theftCaseRepository.findByVehicleIdAndStatusIn(vehicleId, OPEN_STATUSES);
+    }
+
+    /** Retrieval claims waiting on an officer to verify. */
+    public java.util.List<TheftCase> findAwaitingVerification() {
+        return theftCaseRepository.findByStatusOrderByRetrievalReportedAtDesc(
+                TheftCase.Status.RETRIEVAL_REPORTED);
     }
 }

@@ -14,9 +14,9 @@ public class DataSeeder {
     public CommandLineRunner loadData(UserRepository userRepository, VehicleRepository vehicleRepository, LicenseRepository licenseRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             // 1. Keep existing default Citizen, Officer, Admin for backward compatibility
-            User citizen = userRepository.findByNic("901234567V").orElseGet(() -> {
+            User citizen = userRepository.findByNic("199012345678").orElseGet(() -> {
                 User c = User.builder()
-                        .nic("901234567V")
+                        .nic("199012345678")
                         .name("John Doe")
                         .bloodGroup("A-")
                         .role(Role.ROLE_CITIZEN)
@@ -25,9 +25,9 @@ public class DataSeeder {
                 return userRepository.save(c);
             });
 
-            if (userRepository.findByNic("OFFICER123").isEmpty()) {
+            if (userRepository.findByNic("198515030045").isEmpty()) {
                 User officer = User.builder()
-                        .nic("OFFICER123")
+                        .nic("198515030045")
                         .name("John Officer")
                         .bloodGroup("O+")
                         .role(Role.ROLE_OFFICER)
@@ -36,9 +36,9 @@ public class DataSeeder {
                 userRepository.save(officer);
             }
 
-            if (userRepository.findByNic("ADMIN123").isEmpty()) {
+            if (userRepository.findByNic("198000190001").isEmpty()) {
                 User admin = User.builder()
-                        .nic("ADMIN123")
+                        .nic("198000190001")
                         .name("Super Admin")
                         .bloodGroup("B+")
                         .role(Role.ROLE_ADMIN)
@@ -58,9 +58,9 @@ public class DataSeeder {
                 vehicleRepository.save(vehicle);
             }
 
-            if (licenseRepository.findByDlNo("DL-987654").isEmpty()) {
+            if (licenseRepository.findByDlNo("DL-1990123-D").isEmpty()) {
                 License license = License.builder()
-                        .dlNo("DL-987654")
+                        .dlNo("DL-1990123-D")
                         .driver(citizen)
                         .validOperators("A, B, B1")
                         .build();
@@ -164,9 +164,9 @@ public class DataSeeder {
                         .build());
             });
 
-            User officerBandara = userRepository.findByNic("OFFICER_001").orElseGet(() -> {
+            User officerBandara = userRepository.findByNic("197828430012").orElseGet(() -> {
                 return userRepository.save(User.builder()
-                        .nic("OFFICER_001")
+                        .nic("197828430012")
                         .name("INSPECTOR BANDARA")
                         .dateOfBirth(java.time.LocalDate.of(1978, 10, 10))
                         .gender("Male")
@@ -263,9 +263,9 @@ public class DataSeeder {
                 licenseRepository.save(License.builder()
                         .dlNo("DL-5544332-E").driver(shenali).validOperators("B").build());
             }
-            if (licenseRepository.findByDlNo("DL-POL-001").isEmpty()) {
+            if (licenseRepository.findByDlNo("DL-1978284-B").isEmpty()) {
                 licenseRepository.save(License.builder()
-                        .dlNo("DL-POL-001").driver(officerBandara).validOperators("A, B").build());
+                        .dlNo("DL-1978284-B").driver(officerBandara).validOperators("A, B").build());
             }
             if (vehicleRepository.findById("WP POL-001").isEmpty()) {
                 vehicleRepository.save(Vehicle.builder()

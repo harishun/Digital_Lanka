@@ -37,7 +37,7 @@ VALUES
 ('198012304958', 'MAHINDA RATHNAYAKE', '1980-04-12', 'Male', '88, Main Street, Kurunegala', 'Kurunegala Base Hospital', 'O+', 1, 'CITIZEN', '[{"classCode":"C1","description":"Light Lorry","issuedDate":"2002-03-10","expiryDate":"2025-04-12"},{"classCode":"C","description":"Heavy Lorry","issuedDate":"2002-03-10","expiryDate":"2025-04-12"},{"classCode":"CE","description":"Heavy Lorry Trailer","issuedDate":"2005-08-20","expiryDate":"2025-04-12"}]'),
 ('199556708123', 'THARINDU JAYASURIYA', '1995-09-08', 'Male', '23, Bus Stand Rd, Negombo', 'Negombo Hospital', 'AB+', 1, 'CITIZEN', '[{"classCode":"D1","description":"Light Bus","issuedDate":"2016-05-10","expiryDate":"2031-09-08"},{"classCode":"D","description":"Motor Coach","issuedDate":"2016-05-10","expiryDate":"2031-09-08"},{"classCode":"PT","description":"Public Transport","issuedDate":"2018-01-20","expiryDate":"2031-09-08"}]'),
 ('200508901234', 'SHENALI PERERA', '2005-02-14', 'Female', '101, Galle Road, Dehiwala', 'Kalubowila Teaching Hospital', 'A-', 1, 'CITIZEN', '[{"classCode":"B","description":"Passenger Car","issuedDate":"2023-03-01","expiryDate":"2033-02-14"}]'),
-('OFFICER_001', 'INSPECTOR BANDARA', '1978-10-10', 'Male', 'Police HQ, Fort, Colombo 01', 'Colombo General Hospital', 'O+', 1, 'POLICE_OFFICER', '[]')
+('197828430012', 'INSPECTOR BANDARA', '1978-10-10', 'Male', 'Police HQ, Fort, Colombo 01', 'Colombo General Hospital', 'O+', 1, 'POLICE_OFFICER', '[]')
 ON DUPLICATE KEY UPDATE nic=nic;
 
 -- ────────────────────────────────────────────────────────────

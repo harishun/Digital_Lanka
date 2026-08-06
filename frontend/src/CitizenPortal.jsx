@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import api from './api';
+import { getCurrentNic } from './identity';
 import * as registryApi from './services/api';
 import './App.css';
 import { User, FileText, Upload, CheckCircle, Clock, Shield, Car, Bell } from 'lucide-react';
 
 // Modular Reusable Components from Harishun & Achchuthan
-import PersonaSwitcherBar from './components/PersonaSwitcherBar';
 import VehicleCarousel from './components/VehicleCarousel';
 import SharedVehiclesList from './components/SharedVehiclesList';
 import CitizenProfileCard from './components/CitizenProfileCard';
@@ -15,7 +15,7 @@ import AccessControlModal from './components/AccessControlModal';
 import VehicleRegistrationForm from './components/VehicleRegistrationForm';
 import OfficerSimulator from './components/OfficerDashboard';
 
-function CitizenPortal({ setToken, isOfficer, onSwitchToOfficer }) {
+function CitizenPortal({ isOfficer, onSwitchToOfficer }) {
   const [portalTab, setPortalTab] = useState('REGISTRY'); // 'REGISTRY' (Harishun & Achchuthan) | 'CITATIONS' (Ahkash) | 'SIMULATOR' (Achchuthan)
   
   // Ahkash Citations State
@@ -26,9 +26,9 @@ function CitizenPortal({ setToken, isOfficer, onSwitchToOfficer }) {
 
   // Harishun & Achchuthan Registry State
   const [isRegistrationFormOpen, setIsRegistrationFormOpen] = useState(false);
-  const [currentNic, setCurrentNic] = useState(() => {
-    return localStorage.getItem('current_user_nic') || '197204509123';
-  });
+  // Identity is owned by identity.js and switched from the global persona bar
+  // in App.jsx. App remounts this component on change, so this is read once.
+  const currentNic = getCurrentNic();
   const [currentUser, setCurrentUser] = useState(null);
   const [vehicles, setVehicles] = useState([]);
   const [incomingInvitations, setIncomingInvitations] = useState([]);
@@ -52,15 +52,6 @@ function CitizenPortal({ setToken, isOfficer, onSwitchToOfficer }) {
   const [durationDays, setDurationDays] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [isError, setIsError] = useState(false);
-
-  const personas = [
-    { nic: '197204509123', name: '👑 W.M. Sugathadasa (ROOT_ADMIN & Vehicle Owner)', role: 'ROOT_ADMIN' },
-    { nic: '198503402948', name: '👤 Arjun Ranaweera (Citizen & Motorcycle Owner)', role: 'CITIZEN' },
-    { nic: '199003402948', name: '👤 K.A. Don Perera (Citizen Driver)', role: 'CITIZEN' },
-    { nic: '198012304958', name: '🚛 Mahinda Rathnayake (Heavy Lorry Driver)', role: 'CITIZEN' },
-    { nic: '199556708123', name: '🚌 Tharindu Jayasuriya (Bus & Public Transport)', role: 'CITIZEN' },
-    { nic: '200508901234', name: '⚡ Shenali Perera (EV Owner & New Driver)', role: 'CITIZEN' }
-  ];
 
   useEffect(() => {
     fetchCitations();
@@ -121,14 +112,6 @@ function CitizenPortal({ setToken, isOfficer, onSwitchToOfficer }) {
 
   const handleNextVehicle = () => {
     setActiveVehicleIndex((prev) => (prev < vehicles.length - 1 ? prev + 1 : 0));
-  };
-
-  const handlePersonaChange = (e) => {
-    const nextNic = e.target.value;
-    setCurrentNic(nextNic);
-    setActiveVehicleIndex(0);
-    setIsRegistrationFormOpen(false);
-    localStorage.setItem('current_user_nic', nextNic);
   };
 
   const openDocModal = async (vehicle, targetDoc = 'vrc') => {
@@ -271,12 +254,6 @@ function CitizenPortal({ setToken, isOfficer, onSwitchToOfficer }) {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    setToken(null);
-  };
-
   return (
     <div className="min-h-screen bg-lightBg font-sans text-gray-800">
       <header className="bg-darkBlue text-white p-4 shadow-md flex justify-between items-center flex-wrap gap-4">
@@ -333,21 +310,12 @@ function CitizenPortal({ setToken, isOfficer, onSwitchToOfficer }) {
               <span>👮‍♂️ Officer Dashboard (Penalty Citation)</span>
             </button>
           )}
-          <button onClick={handleLogout} className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition">
-            Logout
-          </button>
         </div>
       </header>
 
       {/* TAB 1: HARISHUN & ACHCHUTHAN VEHICLE & DRIVER REGISTRY */}
       {portalTab === 'REGISTRY' && (
         <div className="max-w-7xl mx-auto mt-6 p-4 animate-fade-in">
-          <PersonaSwitcherBar
-            currentNic={currentNic}
-            handlePersonaChange={handlePersonaChange}
-            personas={personas}
-          />
-
           <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '32px', marginTop: '24px' }}>
             {/* Left Column: Carousel & Shared Vehicles OR Registration Form */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>

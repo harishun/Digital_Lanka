@@ -1,36 +1,38 @@
 import axios from 'axios';
+import { getCurrentNic } from './identity';
 
+// Spring Boot backend — see portmap.txt (8081/8082 are the DRP/DMT mock APIs).
 const api = axios.create({
-  baseURL: 'http://localhost:8081/api',
+  baseURL: 'http://localhost:8085/api',
 });
 
-// Request interceptor to add the auth token header to requests
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  // For enforcement details, we use the sessionToken if available
+  // The roadside enforcement endpoints are gated by a 5-minute, single-stop
+  // session token (the privacy lockout), not by the caller's identity.
   const sessionToken = localStorage.getItem('sessionToken');
-  
-  if (config.url.startsWith('/enforcement/details') || config.url.startsWith('/enforcement/citation')) {
-      if (sessionToken) {
-          config.headers.Authorization = `Bearer ${sessionToken}`;
-      }
-  } else if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const isEnforcementSessionCall =
+    config.url.startsWith('/enforcement/details') || config.url.startsWith('/enforcement/citation');
+
+  if (isEnforcementSessionCall && sessionToken) {
+    config.headers.Authorization = `Bearer ${sessionToken}`;
+  } else {
+    // No login yet — the active persona is the identity. DevIdentityFilter on
+    // the backend turns this header into a real Spring Security context.
+    // HANDOVER NOTE: replace with `Bearer ${token}` when login lands.
+    config.headers['X-User-Nic'] = getCurrentNic();
   }
+
   return config;
 });
 
-// Response interceptor to auto-clear expired or invalid tokens (401/403)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // An expired enforcement session is expected — drop the stale token so the
+    // officer can start a new stop. Never reload the page (there is no login
+    // to return to, and reloading would wipe in-progress citation data).
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      if (localStorage.getItem('token')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('sessionToken');
-        localStorage.removeItem('role');
-        window.location.reload();
-      }
+      localStorage.removeItem('sessionToken');
     }
     return Promise.reject(error);
   }

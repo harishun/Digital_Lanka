@@ -1,49 +1,84 @@
 import React, { useState, useEffect } from 'react';
-import Login from './Login';
 import Dashboard from './Dashboard';
 import CitizenPortal from './CitizenPortal';
 import AdminPortal from './AdminPortal';
+import PersonaSwitcherBar from './components/PersonaSwitcherBar';
+import {
+  PERSONAS,
+  getCurrentNic,
+  getCurrentRole,
+  setCurrentNic,
+  onIdentityChange,
+  ROLE_OFFICER,
+  ROLE_ADMIN,
+} from './identity';
 
+/**
+ * App — portal routing.
+ *
+ * There is no login gate: the active persona (see identity.js) decides which
+ * portal is shown. An officer is also a citizen, so they get both the Officer
+ * Dashboard and the Citizen Portal with a button to switch between them.
+ *
+ * The persona switcher lives here rather than inside the Citizen Portal so that
+ * it is reachable from every portal — otherwise switching to the admin persona
+ * would strand you in AdminPortal with no way back.
+ *
+ * HANDOVER NOTE: when login lands, delete the PersonaSwitcherBar and drive
+ * `nic`/`role` off the authenticated session instead.
+ */
 function App() {
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const role = localStorage.getItem('role');
-  const [officerMode, setOfficerMode] = useState('citizen'); // Default to Citizen Portal for officers
+  const [nic, setNic] = useState(getCurrentNic);
+  const [officerMode, setOfficerMode] = useState('citizen'); // officers land on their citizen portal
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      setToken(localStorage.getItem('token'));
+    const sync = () => setNic(getCurrentNic());
+    const unsubscribe = onIdentityChange(sync);
+    window.addEventListener('storage', sync); // keep other tabs in step
+    return () => {
+      unsubscribe();
+      window.removeEventListener('storage', sync);
     };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const isOfficer = role === 'ROLE_OFFICER' || role === 'POLICE_OFFICER';
+  const role = getCurrentRole();
+  const isOfficer = role === ROLE_OFFICER;
 
-  let content;
-  if (!token) {
-    content = <Login setToken={setToken} />;
-  } else if (isOfficer) {
-    if (officerMode === 'officer') {
-      content = <Dashboard setToken={setToken} onSwitchToCitizen={() => setOfficerMode('citizen')} />;
-    } else {
-      content = (
-        <CitizenPortal
-          setToken={setToken}
-          isOfficer={true}
-          onSwitchToOfficer={() => setOfficerMode('officer')}
-        />
-      );
+  // Switching to a non-officer persona must not leave us on the officer view.
+  useEffect(() => {
+    if (!isOfficer && officerMode !== 'citizen') {
+      setOfficerMode('citizen');
     }
-  } else if (role === 'ROLE_CITIZEN') {
-    content = <CitizenPortal setToken={setToken} />;
-  } else if (role === 'ROLE_ADMIN') {
-    content = <AdminPortal setToken={setToken} />;
+  }, [isOfficer, officerMode]);
+
+  const handlePersonaChange = (e) => setCurrentNic(e.target.value);
+
+  // `key={nic}` remounts the active portal on a persona switch, so no stale
+  // vehicles, citations or notifications from the previous user survive.
+  let content;
+  if (isOfficer && officerMode === 'officer') {
+    content = <Dashboard key={nic} onSwitchToCitizen={() => setOfficerMode('citizen')} />;
+  } else if (role === ROLE_ADMIN) {
+    content = <AdminPortal key={nic} />;
   } else {
-    content = <Login setToken={setToken} />;
+    content = (
+      <CitizenPortal
+        key={nic}
+        isOfficer={isOfficer}
+        onSwitchToOfficer={() => setOfficerMode('officer')}
+      />
+    );
   }
 
   return (
     <div>
+      <div style={{ padding: '12px 16px 0' }}>
+        <PersonaSwitcherBar
+          currentNic={nic}
+          handlePersonaChange={handlePersonaChange}
+          personas={PERSONAS}
+        />
+      </div>
       {content}
     </div>
   );

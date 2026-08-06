@@ -3,7 +3,6 @@ package com.digitallanka.backend.service;
 import com.digitallanka.backend.client.GovApiClient;
 import com.digitallanka.backend.dto.VehicleRegistrationResponse;
 import com.digitallanka.backend.model.TheftCase;
-import com.digitallanka.backend.entity.Role;
 import com.digitallanka.backend.entity.User;
 import com.digitallanka.backend.repository.TheftCaseRepository;
 import com.digitallanka.backend.repository.UserRepository;
@@ -70,10 +69,7 @@ public class StolenTrackingService {
         // 1. Verify resolver is a verified Law Enforcement Officer
         User officer = userRepository.findById(officerNic)
                 .orElseThrow(() -> new IllegalArgumentException("Officer not found in system."));
-        if (officer.getRole() != Role.ROLE_OFFICER
-                && officer.getRole() != Role.ROLE_ADMIN
-                && officer.getRole() != Role.POLICE_OFFICER
-                && officer.getRole() != Role.ROOT_ADMIN) {
+        if (officer.getRole() == null || !officer.getRole().isLawEnforcement()) {
             throw new IllegalStateException(
                     "Only verified law enforcement officers can mark a stolen vehicle as recovered.");
         }

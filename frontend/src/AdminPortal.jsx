@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from './api';
 import { Shield, FileCheck, CheckCircle } from 'lucide-react';
 
-function AdminPortal({ setToken }) {
+function AdminPortal() {
   const [citations, setCitations] = useState([]);
   const [msg, setMsg] = useState('');
 
@@ -29,11 +29,6 @@ function AdminPortal({ setToken }) {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    setToken(null);
-  };
 
   return (
     <div className="min-h-screen bg-lightBg font-sans text-gray-800">
@@ -42,9 +37,6 @@ function AdminPortal({ setToken }) {
           <Shield size={28} className="text-red-300" />
           <h1 className="text-xl font-bold tracking-wider">ADMIN PORTAL</h1>
         </div>
-        <button onClick={handleLogout} className="text-sm bg-red-900 px-4 py-2 rounded hover:bg-red-700 transition">
-          Logout
-        </button>
       </header>
 
       <main className="max-w-5xl mx-auto mt-8 p-4">

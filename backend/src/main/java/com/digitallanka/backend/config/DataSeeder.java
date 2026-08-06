@@ -94,7 +94,7 @@ public class DataSeeder {
                         .placeOfBirth("Kandy General Hospital")
                         .bloodGroup("A+")
                         .donor(true)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"A\",\"description\":\"Motorcycle\",\"issuedDate\":\"2003-11-15\",\"expiryDate\":\"2029-11-15\"},{\"classCode\":\"B\",\"description\":\"Passenger Car\",\"issuedDate\":\"2003-11-15\",\"expiryDate\":\"2029-11-15\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -110,7 +110,7 @@ public class DataSeeder {
                         .placeOfBirth("Galle General Hospital")
                         .bloodGroup("B+")
                         .donor(false)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"B\",\"description\":\"Passenger Car\",\"issuedDate\":\"2008-06-01\",\"expiryDate\":\"2030-06-01\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -126,7 +126,7 @@ public class DataSeeder {
                         .placeOfBirth("Kurunegala Base Hospital")
                         .bloodGroup("O+")
                         .donor(true)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"C1\",\"description\":\"Light Lorry\",\"issuedDate\":\"2002-03-10\",\"expiryDate\":\"2025-04-12\"},{\"classCode\":\"C\",\"description\":\"Heavy Lorry\",\"issuedDate\":\"2002-03-10\",\"expiryDate\":\"2025-04-12\"},{\"classCode\":\"CE\",\"description\":\"Heavy Lorry Trailer\",\"issuedDate\":\"2005-08-20\",\"expiryDate\":\"2025-04-12\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -142,7 +142,7 @@ public class DataSeeder {
                         .placeOfBirth("Negombo Hospital")
                         .bloodGroup("AB+")
                         .donor(true)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"D1\",\"description\":\"Light Bus\",\"issuedDate\":\"2016-05-10\",\"expiryDate\":\"2031-09-08\"},{\"classCode\":\"D\",\"description\":\"Motor Coach\",\"issuedDate\":\"2016-05-10\",\"expiryDate\":\"2031-09-08\"},{\"classCode\":\"PT\",\"description\":\"Public Transport\",\"issuedDate\":\"2018-01-20\",\"expiryDate\":\"2031-09-08\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -158,7 +158,7 @@ public class DataSeeder {
                         .placeOfBirth("Kalubowila Teaching Hospital")
                         .bloodGroup("A-")
                         .donor(true)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"B\",\"description\":\"Passenger Car\",\"issuedDate\":\"2023-03-01\",\"expiryDate\":\"2033-02-14\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -174,7 +174,7 @@ public class DataSeeder {
                         .placeOfBirth("Colombo General Hospital")
                         .bloodGroup("O+")
                         .donor(true)
-                        .role(Role.POLICE_OFFICER)
+                        .role(Role.ROLE_OFFICER)
                         .vehicleClasses("[]")
                         .password(passwordEncoder.encode("password"))
                         .build());

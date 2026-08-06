@@ -4,7 +4,7 @@ import { Camera, Search, AlertTriangle, ShieldCheck, Clock, MapPin, CheckCircle,
 import CitizenProfileCard from './components/CitizenProfileCard';
 import NicCard from './components/NicCard/NicCard';
 
-function Dashboard({ setToken, onSwitchToCitizen }) {
+function Dashboard({ onSwitchToCitizen }) {
   const [plateNo, setPlateNo] = useState('');
   const [dlNo, setDlNo] = useState('');
   const [plateImage, setPlateImage] = useState(null);
@@ -114,6 +114,19 @@ function Dashboard({ setToken, onSwitchToCitizen }) {
     }
   };
 
+  // No login to sign out of — ending a shift just clears any live stop data
+  // so the next officer action starts from a clean, private slate.
+  const handleEndShift = () => {
+    setSessionActive(false);
+    setData(null);
+    setTimeLeft(300);
+    setViolations([]);
+    setViolationSearch('');
+    setCitationDetails(null);
+    localStorage.removeItem('sessionToken');
+    setCitationMsg('Shift ended — enforcement session data cleared.');
+  };
+
   const handleExitSession = () => {
     setSessionActive(false);
     setData(null);
@@ -122,12 +135,6 @@ function Dashboard({ setToken, onSwitchToCitizen }) {
     setViolationSearch('');
     localStorage.removeItem('sessionToken');
     setCitationMsg('✓ Compliance check cleared — returned to officer dashboard without issuing citation.');
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('sessionToken');
-    setToken(null);
   };
 
   const formatTime = (seconds) => {
@@ -299,7 +306,10 @@ function Dashboard({ setToken, onSwitchToCitizen }) {
               <span>👤 My Citizen Portal</span>
             </button>
           )}
-          <button onClick={handleLogout} className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition">
+          <button
+            onClick={handleEndShift}
+            className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
             End Shift
           </button>
         </div>

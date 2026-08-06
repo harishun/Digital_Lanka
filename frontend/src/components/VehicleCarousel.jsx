@@ -15,9 +15,10 @@ export default function VehicleCarousel({
   openAccessControlModal,
   openDocModal,
   handleMarkAsStolen,
+  onRegisterClick,
   isModalOpen = false,
-  onRegisterClick
 }) {
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (isModalOpen) return;
@@ -182,7 +183,7 @@ export default function VehicleCarousel({
                             title="Click to inspect verified compliance documents"
                           >
                             <span className="material-icons" style={{ fontSize: '15px' }}>{isStolen ? 'warning' : 'description'}</span>
-                            <span>{isStolen ? 'STOLEN' : 'ACTIVE • VIEW DOCS 📄'}</span>
+                            <span>{isStolen ? 'STOLEN' : 'ACTIVE • VIEW DOCS'}</span>
                           </div>
                         </div>
 

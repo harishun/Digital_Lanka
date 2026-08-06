@@ -52,6 +52,8 @@ public class DriverController {
     @GetMapping("/authorized-vehicles")
     public ResponseEntity<List<AuthorizedVehicleDto>> getAuthorizedVehicles() {
         String driverNic = SecurityContextHolder.getContext().getAuthentication().getName();
+        authorizationService.syncOwnVehicleAuthorizations(driverNic);
+
         List<VehicleAuthorization> auths = authorizationRepository.findByAuthorizedNicAndStatus(
                 driverNic, VehicleAuthorization.Status.GRANTED);
 

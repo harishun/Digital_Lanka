@@ -11,7 +11,7 @@ This project is a web application developed for digital traffic law enforcement 
 - Police Officer Dashboard:
   - Lookup vehicle registration details by number plate.
   - Check insurance and road tax (revenue license) validity.
-  - Automated alert for reported stolen vehicles with a direct bike seizure action button.
+  - Automated alert for reported stolen vehicles with a direct vehicle seizure action button.
   - Smart driving license card preview with multi-class vehicle endorsements.
   - Issue digital traffic citations with GPS coordinates and timestamps.
 - Citizen Portal:
@@ -46,15 +46,15 @@ The application will be accessible at http://localhost:5173 (or via the port 300
 ## Sample Testing Data
 
 ### Officer Credentials (Roadside Enforcement)
-- NIC / Badge Number: OFFICER123
+- NIC / Badge Number: 198515030045
 - Password: password
 
 ### Citizen Credentials
-- NIC: 901234567V
+- NIC: 199012345678
 - Password: password
 
 ### Test Vehicle Number Plates
-- WP CAD-1234 (Status: STOLEN - use this to test the stolen vehicle alert and bike seizure button)
+- WP CAD-1234 (Status: STOLEN - use this to test the stolen vehicle alert and vehicle seizure button)
 - WP LA-9999 (Status: ACTIVE - all compliance records valid)
 - CBA-1234 (Status: ACTIVE - expired revenue license)
 

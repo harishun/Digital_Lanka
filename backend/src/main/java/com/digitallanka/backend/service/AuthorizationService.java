@@ -186,4 +186,67 @@ public class AuthorizationService {
 
         return savedAuth;
     }
+
+    @Transactional
+    public void syncOwnVehicleAuthorizations(String driverNic) {
+        // 1. Fetch driving licence for user from DMT API
+        java.util.Optional<DrivingLicenceResponse> licenceOpt = govApiClient.getDrivingLicenceByNic(driverNic);
+        if (licenceOpt.isEmpty() || licenceOpt.get().getVehicleClasses() == null) {
+            return;
+        }
+
+        List<LicenceVehicleClassResponse> licenceClasses = licenceOpt.get().getVehicleClasses();
+        if (licenceClasses.isEmpty()) {
+            return;
+        }
+
+        // Collect valid class codes
+        java.util.Set<String> validClasses = new java.util.HashSet<>();
+        for (LicenceVehicleClassResponse lvc : licenceClasses) {
+            if (lvc.getClassCode() != null) {
+                if (lvc.getExpiryDate() != null) {
+                    try {
+                        if (LocalDate.parse(lvc.getExpiryDate()).isAfter(LocalDate.now())) {
+                            validClasses.add(lvc.getClassCode().toUpperCase());
+                        }
+                    } catch (Exception e) {
+                        validClasses.add(lvc.getClassCode().toUpperCase());
+                    }
+                } else {
+                    validClasses.add(lvc.getClassCode().toUpperCase());
+                }
+            }
+        }
+
+        if (validClasses.isEmpty()) {
+            return;
+        }
+
+        // 2. Fetch vehicles registered under driver's NIC from vehicle_registrations table (via DMT API)
+        List<VehicleRegistrationResponse> ownedVehicles = govApiClient.getVehiclesByOwnerNic(driverNic);
+
+        // 3. For each owned vehicle matching driver's licence class, check and insert into vehicle_authorizations
+        for (VehicleRegistrationResponse vehicle : ownedVehicles) {
+            if (vehicle.getVehicleClass() != null && validClasses.contains(vehicle.getVehicleClass().toUpperCase())) {
+                String vehicleId = vehicle.getPlateNumber();
+
+                boolean exists = authorizationRepository
+                        .findByVehicleIdAndAuthorizedNicAndStatus(vehicleId, driverNic, VehicleAuthorization.Status.GRANTED)
+                        .isPresent();
+
+                if (!exists) {
+                    VehicleAuthorization auth = new VehicleAuthorization();
+                    auth.setId(UUID.randomUUID().toString());
+                    auth.setVehicleId(vehicleId);
+                    auth.setOwnerNic(driverNic);
+                    auth.setAuthorizedNic(driverNic);
+                    auth.setAccessType(VehicleAuthorization.AccessType.PERMANENT);
+                    auth.setStatus(VehicleAuthorization.Status.GRANTED);
+                    auth.setStartTime(null);
+                    auth.setEndTime(null);
+                    authorizationRepository.save(auth);
+                }
+            }
+        }
+    }
 }

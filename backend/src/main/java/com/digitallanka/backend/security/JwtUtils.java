@@ -5,7 +5,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -14,15 +13,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * JwtUtils — mints and reads the 5-minute roadside enforcement session token.
+ *
+ * <p>This is NOT login. The enforcement token is the privacy lockout for the
+ * citation flow: it is scoped to one plate + one licence and expires in five
+ * minutes. It must survive the login rebuild.
+ */
 @Component
 public class JwtUtils {
 
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private long expirationMs;
-    
     @Value("${jwt.5min.expiration}")
     private long enforcementExpirationMs;
 
@@ -30,12 +33,6 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String username, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
-        return createToken(claims, username, expirationMs);
-    }
-    
     public String generateEnforcementToken(String username, String plateNo, String dlNo) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "ENFORCEMENT");
@@ -54,9 +51,12 @@ public class JwtUtils {
                 .compact();
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    public Boolean isValid(String token) {
+        try {
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public String extractUsername(String token) {

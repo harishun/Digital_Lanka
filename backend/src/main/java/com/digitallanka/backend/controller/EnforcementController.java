@@ -38,6 +38,9 @@ public class EnforcementController {
     @Autowired
     private CitationRepository citationRepository;
 
+    @Autowired
+    private com.digitallanka.backend.repository.NotificationRepository notificationRepository;
+
     // 1. Search endpoint to initiate the 5-min session
     @PostMapping("/search")
     public ResponseEntity<?> searchCompliance(@RequestParam("plateNo") String plateNo,
@@ -141,6 +144,94 @@ public class EnforcementController {
 
         citationRepository.save(citation);
 
+        // Push the citation into the offender's inbox so it surfaces on their
+        // dashboard immediately, rather than only inside the Citations tab.
+        String plateNo = jwtUtils.extractClaimAsString(jwt, "plateNo");
+        notificationRepository.save(buildCitationNotification(offender.getNic(), refNum,
+                citationRequest.getViolationType(), plateNo));
+
         return ResponseEntity.ok("Citation issued successfully. Ref: " + refNum);
+    }
+
+    // 4. Seize a stolen vehicle at the roadside (requires the 5-min session token)
+    @PostMapping("/seizure")
+    public ResponseEntity<?> seizeVehicle(HttpServletRequest request) {
+        String jwt = (String) request.getAttribute("jwt");
+        if (jwt == null || !"ENFORCEMENT".equals(jwtUtils.extractClaimAsString(jwt, "type"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Privacy lockout: Time limit exceeded.");
+        }
+
+        String plateNo = jwtUtils.extractClaimAsString(jwt, "plateNo");
+        Optional<Vehicle> vehicleOpt = vehicleRepository.findByPlateNo(plateNo);
+
+        if (vehicleOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
+        }
+
+        Vehicle vehicle = vehicleOpt.get();
+        User owner = vehicle.getOwner();
+
+        if (owner == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Registered owner not found for this vehicle");
+        }
+
+        // The owner is the person who needs to act, so the alert goes to them —
+        // not to whoever happened to be driving at the time of the stop.
+        notificationRepository.save(buildSeizureNotification(owner.getNic(), plateNo));
+
+        return ResponseEntity.ok("Seizure recorded for vehicle " + plateNo
+                + ". The registered owner has been notified.");
+    }
+
+    /**
+     * Builds the inbox alert a vehicle owner receives when their vehicle is
+     * seized at the roadside.
+     */
+    private com.digitallanka.backend.model.Notification buildSeizureNotification(
+            String ownerNic, String plateNo) {
+
+        com.digitallanka.backend.model.Notification notification =
+                new com.digitallanka.backend.model.Notification();
+
+        notification.setId(UUID.randomUUID().toString());
+        notification.setRecipientNic(ownerNic);
+        notification.setTitle("Vehicle Seized — " + plateNo);
+        notification.setMessage(
+                "Your vehicle " + plateNo + " has been seized by Roadside Law Enforcement "
+                        + "after being flagged as stolen in the national database. "
+                        + "Please visit your nearest police station with your National Identity Card "
+                        + "and vehicle registration documents to begin the release process.");
+        notification.setType(com.digitallanka.backend.model.Notification.Type.SEIZURE);
+        notification.setReferenceId(plateNo);
+        notification.setRead(false);
+
+        return notification;
+    }
+
+    /**
+     * Builds the inbox alert a driver receives the moment a citation is raised
+     * against them. Kept unread so it shows with the blue "new" dot.
+     */
+    private com.digitallanka.backend.model.Notification buildCitationNotification(
+            String offenderNic, String refNum, String violationType, String plateNo) {
+
+        com.digitallanka.backend.model.Notification notification =
+                new com.digitallanka.backend.model.Notification();
+
+        notification.setId(UUID.randomUUID().toString());
+        notification.setRecipientNic(offenderNic);
+        notification.setTitle("Penalty Citation Issued — " + refNum);
+        notification.setMessage(
+                "A penalty citation has been issued against you by Roadside Law Enforcement"
+                        + (plateNo != null ? " for vehicle " + plateNo : "")
+                        + ". Violation: " + violationType
+                        + ". Reference: " + refNum
+                        + ". Please settle the fine and upload your payment receipt "
+                        + "under 'My Penalty Citations'.");
+        notification.setType(com.digitallanka.backend.model.Notification.Type.CITATION);
+        notification.setReferenceId(refNum);
+        notification.setRead(false);
+
+        return notification;
     }
 }

@@ -1,5 +1,6 @@
 package com.digitallanka.backend.security;
 
+import com.digitallanka.backend.entity.Role;
 import com.digitallanka.backend.entity.User;
 import com.digitallanka.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,22 +22,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByNic(nic)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found with nic: " + nic));
 
-        String password = user.getPassword();
-        if (password == null || password.isEmpty()) {
-            password = "$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG"; // default bcrypt for "password"
-        }
+        Role role = user.getRole() != null ? user.getRole() : Role.ROLE_CITIZEN;
 
-        String roleName = user.getRole() != null ? user.getRole().name() : "ROLE_CITIZEN";
-        if (!roleName.startsWith("ROLE_")) {
-            if ("POLICE_OFFICER".equals(roleName)) roleName = "ROLE_OFFICER";
-            else if ("ROOT_ADMIN".equals(roleName)) roleName = "ROLE_ADMIN";
-            else roleName = "ROLE_" + roleName;
-        }
+        // No password is checked while login is disabled, but UserDetails requires
+        // a non-null value. Kept as the stored hash so the real login can verify it.
+        String password = user.getPassword() != null ? user.getPassword() : "";
 
         return new org.springframework.security.core.userdetails.User(
                 user.getNic(),
                 password,
-                Collections.singletonList(new SimpleGrantedAuthority(roleName))
+                Collections.singletonList(new SimpleGrantedAuthority(role.toAuthority()))
         );
     }
 }

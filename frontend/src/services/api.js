@@ -2,15 +2,68 @@
 // Vehicle data is now fetched live from the backend (which proxies to the DMT government database).
 // Only citizen profile data uses a local fallback (read-only, rarely changes).
 
+import { getCurrentNic } from '../identity';
+
+// Spring Boot backend — see portmap.txt (8081/8082 are the DRP/DMT mock APIs).
 const API_BASE_URL = 'http://localhost:8085/api';
 
 // ── Citizen profiles (read-only reference data) ─────────────────────────────
 // Kept locally as the DRP mock API data rarely changes. Used for offline display.
 const DEFAULT_CITIZENS = {
+  "197828430012": {
+    nic: "197828430012",
+    fullName: "INSPECTOR BANDARA",
+    role: "ROLE_OFFICER",
+    gender: "Male",
+    dateOfBirth: "1978-10-10",
+    address: "Police HQ, Fort, Colombo 01",
+    dateOfIssue: "1998-05-20",
+    placeOfBirth: "Colombo",
+    licenseNumber: "DL-1978284-B",
+    bloodGroup: "O+",
+    restrictions: "NONE",
+    donor: true,
+    vehicleClasses: [
+      { classCode: "A", issuedDate: "1998-05-20", expiryDate: "2030-10-10", description: "Motor Cycles" },
+      { classCode: "B", issuedDate: "1998-05-20", expiryDate: "2030-10-10", description: "Dual Purpose Vehicles" }
+    ]
+  },
+  "198515030045": {
+    nic: "198515030045",
+    fullName: "JOHN OFFICER",
+    role: "ROLE_OFFICER",
+    gender: "Male",
+    dateOfBirth: "1985-05-30",
+    address: "Traffic Division, Colombo 02",
+    dateOfIssue: "2006-02-14",
+    placeOfBirth: "Colombo",
+    licenseNumber: "—",
+    bloodGroup: "A+",
+    restrictions: "NONE",
+    donor: true,
+    vehicleClasses: []
+  },
+  "199012345678": {
+    nic: "199012345678",
+    fullName: "JOHN DOE",
+    role: "ROLE_CITIZEN",
+    gender: "Male",
+    dateOfBirth: "1990-05-03",
+    address: "123 Heritage Lane, Colombo",
+    dateOfIssue: "2010-08-19",
+    placeOfBirth: "Colombo General Hospital",
+    licenseNumber: "DL-1990123-D",
+    bloodGroup: "O+",
+    restrictions: "NONE",
+    donor: true,
+    vehicleClasses: [
+      { classCode: "B", issuedDate: "2010-08-19", expiryDate: "2030-05-03", description: "Dual Purpose Vehicles" }
+    ]
+  },
   "197204509123": {
     nic: "197204509123",
     fullName: "W.M. SUGATHADASA",
-    role: "ROOT_ADMIN",
+    role: "ROLE_CITIZEN",
     gender: "Male",
     dateOfBirth: "1972-06-15",
     address: "No. 45, Flower Road, Colombo 07",
@@ -126,57 +179,16 @@ const saveDb = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 // ── Citizen profile (local reference only) ───────────────────────────────────
 export const getCitizen = (nic) => DEFAULT_CITIZENS[nic] || null;
 
-// ── JWT authentication helper ────────────────────────────────────────────────
-const loginAndGetToken = async (nic = null) => {
-  const currentNic = nic || localStorage.getItem('current_user_nic') || '197204509123';
-  const tokenKey = `jwt_token_${currentNic}`;
-  let token = localStorage.getItem(tokenKey);
-
-  if (!token) {
-    try {
-      // Try login first
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nic: currentNic, password: 'dev_test@123' })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        token = data.token;
-        localStorage.setItem(tokenKey, token);
-      } else {
-        // Auto-register if not found
-        const citizen = DEFAULT_CITIZENS[currentNic];
-        const regResponse = await fetch(`${API_BASE_URL}/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nic: currentNic,
-            password: 'dev_test@123',
-            email: currentNic === '197204509123' ? 'sugathadasa@gmail.com'
-                 : currentNic === '198503402948' ? 'arjun@gmail.com'
-                 : 'perera@gmail.com',
-            phone: currentNic === '197204509123' ? '0777654321'
-                 : currentNic === '198503402948' ? '0772345678'
-                 : '0773456789',
-            fullName: citizen ? citizen.fullName : 'Test User'
-          })
-        });
-        if (regResponse.ok) {
-          const data = await regResponse.json();
-          token = data.token;
-          localStorage.setItem(tokenKey, token);
-        } else {
-          throw new Error("Unable to register session with backend.");
-        }
-      }
-    } catch (e) {
-      console.warn("Unable to connect to backend auth server:", e.message);
-    }
-  }
-  return token;
-};
+// ── Identity helper ──────────────────────────────────────────────────────────
+/**
+ * There is no login yet, so the active persona IS the identity. Every backend
+ * call carries it in the X-User-Nic header, which DevIdentityFilter turns into
+ * a real Spring Security context with the user's actual role.
+ *
+ * HANDOVER NOTE: when login lands, replace this with the session token and swap
+ * every `'X-User-Nic': token` header back to `Authorization: Bearer <token>`.
+ */
+const resolveIdentity = (nic = null) => nic || getCurrentNic();
 
 // ── Vehicle data (always fetched live from backend → DMT database) ────────────
 
@@ -270,12 +282,12 @@ const FALLBACK_OWNED_VEHICLES = {
 
 export const getVehiclesOwned = async (ownerNic) => {
   try {
-    const token = await loginAndGetToken(ownerNic);
+    const token = resolveIdentity(ownerNic);
     if (!token) return FALLBACK_OWNED_VEHICLES[ownerNic] || [];
 
     const response = await fetch(`${API_BASE_URL}/vehicles/my-vehicles`, {
       method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'X-User-Nic': token }
     });
 
     if (!response.ok) {
@@ -331,12 +343,12 @@ const getFallbackDocuments = (vehicleId) => ({
 
 export const getVehicleDocuments = async (vehicleId, currentNic) => {
   try {
-    const token = await loginAndGetToken(currentNic);
+    const token = resolveIdentity(currentNic);
     if (!token) return getFallbackDocuments(vehicleId);
 
     const response = await fetch(`${API_BASE_URL}/vehicles/${encodeURIComponent(vehicleId)}/documents`, {
       method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'X-User-Nic': token }
     });
 
     if (!response.ok) {
@@ -364,11 +376,11 @@ const addLocalNotification = (recipientNic, notificationObj) => {
 
 export const getVehiclesAuthorizedToDrive = async (driverNic) => {
   try {
-    const token = await loginAndGetToken(driverNic);
+    const token = resolveIdentity(driverNic);
     if (token) {
       const response = await fetch(`${API_BASE_URL}/drivers/authorized-vehicles`, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'X-User-Nic': token }
       });
       if (response.ok) {
         const data = await response.json();
@@ -408,11 +420,11 @@ export const getVehiclesAuthorizedToDrive = async (driverNic) => {
  */
 export const getPendingInvitations = async (driverNic) => {
   try {
-    const token = await loginAndGetToken(driverNic);
+    const token = resolveIdentity(driverNic);
     if (token) {
       const response = await fetch(`${API_BASE_URL}/drivers/invitations`, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'X-User-Nic': token }
       });
       if (response.ok) {
         const data = await response.json();
@@ -460,12 +472,12 @@ let FALLBACK_AUTHORIZATIONS = [
 
 export const getAuthorizationsByVehicle = async (vehicleId, ownerNic) => {
   try {
-    const token = await loginAndGetToken(ownerNic);
+    const token = resolveIdentity(ownerNic);
     if (!token) return FALLBACK_AUTHORIZATIONS.filter(a => a.vehicleId === vehicleId || a.vehicleId === (vehicleId && vehicleId.replace(/\s+/g, '')));
 
     const response = await fetch(`${API_BASE_URL}/vehicles/${encodeURIComponent(vehicleId)}/authorizations`, {
       method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'X-User-Nic': token }
     });
 
     if (!response.ok) {
@@ -489,13 +501,13 @@ export const inviteDriver = async (ownerNic, vehicleId, targetNic, accessType, s
   };
 
   try {
-    const token = await loginAndGetToken(ownerNic);
+    const token = resolveIdentity(ownerNic);
     if (token) {
       const response = await fetch(`${API_BASE_URL}/vehicles/${encodeURIComponent(vehicleId)}/authorizations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'X-User-Nic': token
         },
         body: JSON.stringify(payload)
       });
@@ -553,13 +565,13 @@ export const respondToInvitation = async (authId, accept, driverNic) => {
   const targetAuth = FALLBACK_AUTHORIZATIONS.find(a => String(a.id) === String(authId) || String(a.authorizationId) === String(authId));
 
   try {
-    const token = await loginAndGetToken(driverNic);
+    const token = resolveIdentity(driverNic);
     if (token) {
       const response = await fetch(`${API_BASE_URL}/drivers/invitations/${authId}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'X-User-Nic': token
         },
         body: JSON.stringify({ accept })
       });
@@ -637,11 +649,11 @@ export const respondToInvitation = async (authId, accept, driverNic) => {
 
 export const revokeAuthorization = async (vehicleId, authId, ownerNic) => {
   try {
-    const token = await loginAndGetToken(ownerNic);
+    const token = resolveIdentity(ownerNic);
     if (token) {
       const response = await fetch(`${API_BASE_URL}/vehicles/${encodeURIComponent(vehicleId)}/authorizations/${authId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'X-User-Nic': token }
       });
       if (response.ok) {
         FALLBACK_AUTHORIZATIONS = FALLBACK_AUTHORIZATIONS.map(a => a.id === authId ? { ...a, status: 'REVOKED' } : a);
@@ -660,11 +672,11 @@ export const revokeAuthorization = async (vehicleId, authId, ownerNic) => {
 
 export const getMyNotifications = async (recipientNic) => {
   try {
-    const token = await loginAndGetToken(recipientNic);
+    const token = resolveIdentity(recipientNic);
     if (token) {
       const response = await fetch(`${API_BASE_URL}/notifications`, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'X-User-Nic': token }
       });
       if (response.ok) {
         const data = await response.json();
@@ -680,7 +692,7 @@ export const getMyNotifications = async (recipientNic) => {
 
 export const readNotification = async (notifId, recipientNic) => {
   try {
-    const token = await loginAndGetToken(recipientNic);
+    const token = resolveIdentity(recipientNic);
     if (!token) {
       const notifs = getDb('dl_notifications') || [];
       saveDb('dl_notifications', notifs.filter(n => n.id !== notifId));
@@ -689,7 +701,7 @@ export const readNotification = async (notifId, recipientNic) => {
 
     await fetch(`${API_BASE_URL}/notifications/${notifId}/read`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'X-User-Nic': token }
     });
   } catch (err) {
     console.warn("Backend readNotification failed:", err.message);
@@ -707,11 +719,11 @@ let LOCAL_APPLICATION_STOLEN_FLAGS = {};
  */
 export const reportVehicleStolen = async (vehicleId, ownerNic) => {
   try {
-    const token = await loginAndGetToken(ownerNic);
+    const token = resolveIdentity(ownerNic);
     if (token) {
       const response = await fetch(`${API_BASE_URL}/vehicles/${encodeURIComponent(vehicleId)}/stolen`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'X-User-Nic': token }
       });
 
       if (response.ok) {
@@ -728,17 +740,50 @@ export const reportVehicleStolen = async (vehicleId, ownerNic) => {
 };
 
 /**
+ * Owner closes their own theft report once the vehicle is back in their hands.
+ * Resolves the pending TheftCase so the vehicle returns to ACTIVE.
+ */
+export const reportVehicleRetrieved = async (vehicleId, ownerNic, remarks = '') => {
+  try {
+    const token = resolveIdentity(ownerNic);
+    if (token) {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${encodeURIComponent(vehicleId)}/retrieved`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Nic': token
+        },
+        body: JSON.stringify({ remarks })
+      });
+
+      if (response.ok) {
+        LOCAL_APPLICATION_STOLEN_FLAGS[vehicleId] = 'ACTIVE';
+        return await response.json();
+      }
+
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || 'Could not close the theft report.');
+    }
+  } catch (e) {
+    console.warn("Backend reportVehicleRetrieved failed, updating Application Database fallback:", e.message);
+  }
+
+  LOCAL_APPLICATION_STOLEN_FLAGS[vehicleId] = 'ACTIVE';
+  return { message: "Vehicle marked as RETRIEVED/ACTIVE in Application Database." };
+};
+
+/**
  * Mark a stolen vehicle as recovered in the Digital Lanka Application Database (officer action).
  */
 export const markVehicleRecovered = async (vehicleId, remarks, officerNic) => {
   try {
-    const token = await loginAndGetToken(officerNic || '197204509123');
+    const token = resolveIdentity(officerNic);
     if (token) {
       const response = await fetch(`${API_BASE_URL}/officers/vehicles/${encodeURIComponent(vehicleId)}/recovered`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'X-User-Nic': token
         },
         body: JSON.stringify({ remarks })
       });
@@ -760,13 +805,13 @@ export const markVehicleRecovered = async (vehicleId, remarks, officerNic) => {
 
 export const queryCompliance = async (plateNumber, driverNic, officerNic) => {
   try {
-    const token = await loginAndGetToken(officerNic || '197204509123');
+    const token = resolveIdentity(officerNic);
     if (token) {
       const response = await fetch(
         `${API_BASE_URL}/officers/compliance/check?plateNumber=${encodeURIComponent(plateNumber)}&driverNic=${encodeURIComponent(driverNic || '')}`,
         {
           method: 'GET',
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'X-User-Nic': token }
         }
       );
 
@@ -831,14 +876,14 @@ export const submitProofOfPayment = (citationId, receiptImage) => {
 
 export const registerVehicleAsset = async (vehicleData, currentNic) => {
   try {
-    const token = await loginAndGetToken(currentNic);
+    const token = resolveIdentity(currentNic);
     if (!token) throw new Error("Authentication failed");
 
     const response = await fetch(`${API_BASE_URL}/assets/register-vehicle`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'X-User-Nic': token
       },
       body: JSON.stringify(vehicleData)
     });

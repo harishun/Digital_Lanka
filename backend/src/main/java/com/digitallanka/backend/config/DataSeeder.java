@@ -14,9 +14,9 @@ public class DataSeeder {
     public CommandLineRunner loadData(UserRepository userRepository, VehicleRepository vehicleRepository, LicenseRepository licenseRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             // 1. Keep existing default Citizen, Officer, Admin for backward compatibility
-            User citizen = userRepository.findByNic("901234567V").orElseGet(() -> {
+            User citizen = userRepository.findByNic("199012345678").orElseGet(() -> {
                 User c = User.builder()
-                        .nic("901234567V")
+                        .nic("199012345678")
                         .name("John Doe")
                         .bloodGroup("A-")
                         .role(Role.ROLE_CITIZEN)
@@ -25,9 +25,9 @@ public class DataSeeder {
                 return userRepository.save(c);
             });
 
-            if (userRepository.findByNic("OFFICER123").isEmpty()) {
+            if (userRepository.findByNic("198515030045").isEmpty()) {
                 User officer = User.builder()
-                        .nic("OFFICER123")
+                        .nic("198515030045")
                         .name("John Officer")
                         .bloodGroup("O+")
                         .role(Role.ROLE_OFFICER)
@@ -36,9 +36,9 @@ public class DataSeeder {
                 userRepository.save(officer);
             }
 
-            if (userRepository.findByNic("ADMIN123").isEmpty()) {
+            if (userRepository.findByNic("198000190001").isEmpty()) {
                 User admin = User.builder()
-                        .nic("ADMIN123")
+                        .nic("198000190001")
                         .name("Super Admin")
                         .bloodGroup("B+")
                         .role(Role.ROLE_ADMIN)
@@ -58,9 +58,9 @@ public class DataSeeder {
                 vehicleRepository.save(vehicle);
             }
 
-            if (licenseRepository.findByDlNo("DL-987654").isEmpty()) {
+            if (licenseRepository.findByDlNo("DL-1990123-D").isEmpty()) {
                 License license = License.builder()
-                        .dlNo("DL-987654")
+                        .dlNo("DL-1990123-D")
                         .driver(citizen)
                         .validOperators("A, B, B1")
                         .build();
@@ -78,7 +78,7 @@ public class DataSeeder {
                         .placeOfBirth("Colombo General Hospital")
                         .bloodGroup("B+")
                         .donor(true)
-                        .role(Role.ROOT_ADMIN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"A1\",\"description\":\"Light Motorcycle\",\"issuedDate\":\"1995-04-10\",\"expiryDate\":\"2032-06-15\"},{\"classCode\":\"A\",\"description\":\"Motorcycle\",\"issuedDate\":\"1995-04-10\",\"expiryDate\":\"2032-06-15\"},{\"classCode\":\"B\",\"description\":\"Passenger Car\",\"issuedDate\":\"1995-04-10\",\"expiryDate\":\"2032-06-15\"},{\"classCode\":\"G1\",\"description\":\"Two Wheel Tractor\",\"issuedDate\":\"2000-01-15\",\"expiryDate\":\"2032-06-15\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -94,7 +94,7 @@ public class DataSeeder {
                         .placeOfBirth("Kandy General Hospital")
                         .bloodGroup("A+")
                         .donor(true)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"A\",\"description\":\"Motorcycle\",\"issuedDate\":\"2003-11-15\",\"expiryDate\":\"2029-11-15\"},{\"classCode\":\"B\",\"description\":\"Passenger Car\",\"issuedDate\":\"2003-11-15\",\"expiryDate\":\"2029-11-15\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -110,7 +110,7 @@ public class DataSeeder {
                         .placeOfBirth("Galle General Hospital")
                         .bloodGroup("B+")
                         .donor(false)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"B\",\"description\":\"Passenger Car\",\"issuedDate\":\"2008-06-01\",\"expiryDate\":\"2030-06-01\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -126,7 +126,7 @@ public class DataSeeder {
                         .placeOfBirth("Kurunegala Base Hospital")
                         .bloodGroup("O+")
                         .donor(true)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"C1\",\"description\":\"Light Lorry\",\"issuedDate\":\"2002-03-10\",\"expiryDate\":\"2025-04-12\"},{\"classCode\":\"C\",\"description\":\"Heavy Lorry\",\"issuedDate\":\"2002-03-10\",\"expiryDate\":\"2025-04-12\"},{\"classCode\":\"CE\",\"description\":\"Heavy Lorry Trailer\",\"issuedDate\":\"2005-08-20\",\"expiryDate\":\"2025-04-12\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -142,7 +142,7 @@ public class DataSeeder {
                         .placeOfBirth("Negombo Hospital")
                         .bloodGroup("AB+")
                         .donor(true)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"D1\",\"description\":\"Light Bus\",\"issuedDate\":\"2016-05-10\",\"expiryDate\":\"2031-09-08\"},{\"classCode\":\"D\",\"description\":\"Motor Coach\",\"issuedDate\":\"2016-05-10\",\"expiryDate\":\"2031-09-08\"},{\"classCode\":\"PT\",\"description\":\"Public Transport\",\"issuedDate\":\"2018-01-20\",\"expiryDate\":\"2031-09-08\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -158,15 +158,15 @@ public class DataSeeder {
                         .placeOfBirth("Kalubowila Teaching Hospital")
                         .bloodGroup("A-")
                         .donor(true)
-                        .role(Role.CITIZEN)
+                        .role(Role.ROLE_CITIZEN)
                         .vehicleClasses("[{\"classCode\":\"B\",\"description\":\"Passenger Car\",\"issuedDate\":\"2023-03-01\",\"expiryDate\":\"2033-02-14\"}]")
                         .password(passwordEncoder.encode("password"))
                         .build());
             });
 
-            User officerBandara = userRepository.findByNic("OFFICER_001").orElseGet(() -> {
+            User officerBandara = userRepository.findByNic("197828430012").orElseGet(() -> {
                 return userRepository.save(User.builder()
-                        .nic("OFFICER_001")
+                        .nic("197828430012")
                         .name("INSPECTOR BANDARA")
                         .dateOfBirth(java.time.LocalDate.of(1978, 10, 10))
                         .gender("Male")
@@ -174,7 +174,7 @@ public class DataSeeder {
                         .placeOfBirth("Colombo General Hospital")
                         .bloodGroup("O+")
                         .donor(true)
-                        .role(Role.POLICE_OFFICER)
+                        .role(Role.ROLE_OFFICER)
                         .vehicleClasses("[]")
                         .password(passwordEncoder.encode("password"))
                         .build());
@@ -262,6 +262,17 @@ public class DataSeeder {
             if (licenseRepository.findByDlNo("DL-5544332-E").isEmpty()) {
                 licenseRepository.save(License.builder()
                         .dlNo("DL-5544332-E").driver(shenali).validOperators("B").build());
+            }
+            if (licenseRepository.findByDlNo("DL-1978284-B").isEmpty()) {
+                licenseRepository.save(License.builder()
+                        .dlNo("DL-1978284-B").driver(officerBandara).validOperators("A, B").build());
+            }
+            if (vehicleRepository.findById("WP POL-001").isEmpty()) {
+                vehicleRepository.save(Vehicle.builder()
+                        .plateNo("WP POL-001").plateNumber("WP POL-001")
+                        .owner(officerBandara).model("Toyota Hilux (Police Patrol)").vehicleClass("B")
+                        .fuelType("Diesel").status("ACTIVE")
+                        .insuranceStatus("VALID").revenueStatus("VALID").build());
             }
         };
     }

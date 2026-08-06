@@ -4,7 +4,15 @@ import { Camera, Search, AlertTriangle, ShieldCheck, Clock, MapPin, CheckCircle,
 import CitizenProfileCard from './components/CitizenProfileCard';
 import NicCard from './components/NicCard/NicCard';
 
-function Dashboard({ setToken }) {
+/**
+ * Dashboard — Roadside Enforcement / Penalty Citation officer view.
+ *
+ * Rendered two ways:
+ *  - standalone, via the officer/citizen switch (full page, own header)
+ *  - `embedded`, as a tab inside CitizenPortal (header suppressed so the
+ *    portal's own header and tab bar aren't duplicated)
+ */
+function Dashboard({ onSwitchToCitizen, embedded = false }) {
   const [plateNo, setPlateNo] = useState('');
   const [dlNo, setDlNo] = useState('');
   const [plateImage, setPlateImage] = useState(null);
@@ -23,7 +31,18 @@ function Dashboard({ setToken }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [citationDetails, setCitationDetails] = useState(null);
   
+  const [shiftEnded, setShiftEnded] = useState(false);
+
   const timerRef = useRef(null);
+  const endShiftTimerRef = useRef(null);
+
+  // Never leave a timer running against an unmounted component.
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (endShiftTimerRef.current) clearTimeout(endShiftTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     // Get GPS once logged in
@@ -114,6 +133,31 @@ function Dashboard({ setToken }) {
     }
   };
 
+  // No login to sign out of — ending a shift clears any live stop data so the
+  // next officer action starts from a clean, private slate, confirms it with a
+  // toast, then hands the officer back to their own Citizen Portal.
+  const handleEndShift = () => {
+    if (shiftEnded) return; // guard against double-clicks re-arming the timer
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    setSessionActive(false);
+    setData(null);
+    setTimeLeft(300);
+    setViolations([]);
+    setViolationSearch('');
+    setCitationDetails(null);
+    setCitationMsg('');
+    localStorage.removeItem('sessionToken');
+
+    setShiftEnded(true);
+
+    // Give the officer a beat to read the confirmation before the portal
+    // swaps out from under them.
+    endShiftTimerRef.current = setTimeout(() => {
+      if (onSwitchToCitizen) onSwitchToCitizen();
+    }, 1600);
+  };
+
   const handleExitSession = () => {
     setSessionActive(false);
     setData(null);
@@ -122,12 +166,6 @@ function Dashboard({ setToken }) {
     setViolationSearch('');
     localStorage.removeItem('sessionToken');
     setCitationMsg('✓ Compliance check cleared — returned to officer dashboard without issuing citation.');
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('sessionToken');
-    setToken(null);
   };
 
   const formatTime = (seconds) => {
@@ -290,9 +328,23 @@ function Dashboard({ setToken }) {
           <ShieldCheck size={28} className="text-blue-300" />
           <h1 className="text-xl font-bold tracking-wider">DIGITAL LANKA - ENFORCEMENT</h1>
         </div>
-        <button onClick={handleLogout} className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition">
-          End Shift
-        </button>
+        <div className="flex items-center gap-3">
+          {onSwitchToCitizen && (
+            <button
+              onClick={onSwitchToCitizen}
+              className="text-sm bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2 transform active:scale-95 border border-blue-400"
+            >
+              <span>👤 My Citizen Portal</span>
+            </button>
+          )}
+          <button
+            onClick={handleEndShift}
+            disabled={shiftEnded}
+            className="text-sm bg-blue-800 px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {shiftEnded ? 'Ending Shift…' : 'End Shift'}
+          </button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto mt-8 p-4">
@@ -300,7 +352,7 @@ function Dashboard({ setToken }) {
         {!sessionActive && (
           <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-darkBlue animate-fade-in">
             <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2 text-darkBlue">
-              <Search size={24} /> Compliance Check
+              <Search size={24} /> Compliance Check & Citation
             </h2>
             <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
@@ -315,18 +367,18 @@ function Dashboard({ setToken }) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Driver NIC Number</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Driver NIC / DL Number</label>
                 <input 
                   type="text" 
                   required
                   value={dlNo}
                   onChange={(e) => setDlNo(e.target.value.toUpperCase())}
-                  placeholder="e.g. 197204509123"
+                  placeholder="e.g. 197204509123 or DL-123"
                   className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-darkBlue focus:border-darkBlue transition uppercase"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="block text-sm font-medium text-gray-600 mb-1">Plate Capture</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Vehicle Photo / Plate Capture (Evidence)</label>
                 <div className="w-full p-2 border border-dashed border-gray-400 rounded-lg text-gray-500 hover:bg-gray-50 flex justify-center items-center transition">
                   <input 
                     type="file" 
@@ -349,6 +401,26 @@ function Dashboard({ setToken }) {
                 <span>{citationMsg}</span>
               </div>
             )}
+          </div>
+        )}
+
+        {/* END OF SHIFT CONFIRMATION — shown briefly before handing the
+            officer back to their Citizen Portal. */}
+        {shiftEnded && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="fixed top-6 right-6 z-50 bg-gray-900 text-white px-6 py-4 rounded-xl shadow-2xl border-l-4 border-green-500 flex items-center gap-3 animate-slide-in max-w-md"
+          >
+            <CheckCircle className="text-green-500 shrink-0" size={24} />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold uppercase tracking-wider text-green-400">
+                ✓ Shift Ended
+              </span>
+              <span className="text-sm font-semibold mt-0.5">
+                Enforcement session cleared. Returning to your Citizen Portal…
+              </span>
+            </div>
           </div>
         )}
 
@@ -411,7 +483,7 @@ function Dashboard({ setToken }) {
                         </span>
                       </div>
                       <CitizenProfileCard currentUser={{
-                      nic: data.driverNic || '901234567V',
+                      nic: data.driverNic || '199012345678',
                       fullName: data.driverName || 'JOHN DOE',
                       dateOfBirth: parseNIC(data.driverNic).dob || '1990-01-01',
                       bloodGroup: data.bloodGroup || 'O+',
@@ -463,7 +535,7 @@ function Dashboard({ setToken }) {
               <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
                 <h3 className="text-xl font-bold text-darkBlue mb-4">Issue Citation</h3>
 
-                {/* STOLEN REPORTED VEHICLE / BIKE SEIZURE SECTION */}
+                {/* STOLEN REPORTED VEHICLE / VEHICLE SEIZURE SECTION */}
                 <div className="mb-6">
                   {data.status === 'STOLEN' ? (
                     <div className="bg-red-600 text-white p-5 rounded-xl shadow-lg border-2 border-red-700">
@@ -478,15 +550,28 @@ function Dashboard({ setToken }) {
                           </div>
                         </div>
                         <button
-                          onClick={() => {
-                            setCitationMsg(`Seizure confirmed following the vehicle number ${data.plateNo}`);
+                          onClick={async () => {
+                            const seizedPlate = data.plateNo;
+                            try {
+                              // Records the seizure and alerts the registered owner
+                              // to report to their nearest police station.
+                              await api.post('/enforcement/seizure');
+                              setCitationMsg(
+                                `Seizure confirmed for vehicle ${seizedPlate}. The registered owner has been notified to report to the nearest police station.`
+                              );
+                            } catch (err) {
+                              setCitationMsg(
+                                err.response?.data ||
+                                `Seizure recorded for ${seizedPlate}.`
+                              );
+                            }
                             setSessionActive(false);
                             setData(null);
                             setTimeLeft(300);
                           }}
                           className="bg-white text-red-700 hover:bg-red-50 font-black px-6 py-3 rounded-lg shadow-md transition transform active:scale-95 whitespace-nowrap flex items-center justify-center gap-2 text-sm uppercase tracking-wider border border-red-200"
                         >
-                          🚨 Bike Seizure
+                          🚨 Vehicle Seizure
                         </button>
                       </div>
                     </div>

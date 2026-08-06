@@ -37,17 +37,6 @@ public class BackendApplication {
 				System.err.println("--- DB SCHEMA MIGRATION SKIPPED: " + e.getMessage());
 			}
 
-			// Purge legacy records containing old test NIC 200331910202
-			try {
-				jdbcTemplate.execute("DELETE FROM vehicle_authorizations WHERE owner_nic = '200331910202' OR authorized_nic = '200331910202'");
-				jdbcTemplate.execute("DELETE FROM notifications WHERE recipient_nic = '200331910202'");
-				jdbcTemplate.execute("DELETE FROM theft_cases WHERE reporter_nic = '200331910202'");
-				jdbcTemplate.execute("DELETE FROM users WHERE nic = '200331910202'");
-				System.out.println("--- DB CLEANUP: Purged all legacy records for NIC 200331910202");
-			} catch (Exception e) {
-				System.err.println("--- DB CLEANUP SKIPPED: " + e.getMessage());
-			}
-
 			// ── Seed application users ────────────────────────────────────────
 			// Note: Vehicle data lives in the DMT Government Mock Database.
 			//       This application only seeds users, authorizations, and notifications.

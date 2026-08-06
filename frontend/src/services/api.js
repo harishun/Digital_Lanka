@@ -474,6 +474,29 @@ export const getVehiclesAuthorizedToDrive = async (driverNic) => {
     console.warn("Backend getVehiclesAuthorizedToDrive failed, returning fallback:", err.message);
   }
 
+  // Self-authorization sync: Add owned vehicles matching valid driver licence classes to authorized list
+  const owned = FALLBACK_OWNED_VEHICLES[driverNic] || [];
+  const citizen = DEFAULT_CITIZENS[driverNic];
+  const validClasses = (citizen && citizen.vehicleClasses) ? citizen.vehicleClasses.map(c => c.classCode.toUpperCase()) : ['A', 'B'];
+
+  owned.forEach(v => {
+    const vClass = (v.vehicleClass || 'B').toUpperCase();
+    if (validClasses.includes(vClass)) {
+      const exists = FALLBACK_AUTHORIZATIONS.some(a => a.authorizedNic === driverNic && (a.vehicleId === v.plateNumber || a.vehicleId === v.id));
+      if (!exists) {
+        FALLBACK_AUTHORIZATIONS.push({
+          id: 'self_auth_' + (v.plateNumber || v.id).replace(/\s+/g, ''),
+          vehicleId: v.plateNumber || v.id,
+          ownerNic: driverNic,
+          authorizedNic: driverNic,
+          accessType: 'PERMANENT',
+          status: 'GRANTED',
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+  });
+
   // Fallback: Filter local authorizations where authorizedNic === driverNic AND status === 'GRANTED' ONLY
   const grantedAuths = FALLBACK_AUTHORIZATIONS.filter(a => a.authorizedNic === driverNic && a.status === 'GRANTED');
   return grantedAuths.map(auth => {
@@ -486,11 +509,8 @@ export const getVehiclesAuthorizedToDrive = async (driverNic) => {
       authorizationId: auth.id,
       vehicleId: auth.vehicleId,
       plateNumber: auth.vehicleId,
-      model: vDetails ? vDetails.model : 'Toyota Prius (Grey)',
+      model: vDetails ? vDetails.model : 'Toyota Vehicle',
       vehicleClass: vDetails ? vDetails.vehicleClass : 'B',
-      fuelType: vDetails ? vDetails.fuelType : 'Petrol / Hybrid',
-      ownerNic: auth.ownerNic,
-      accessType: auth.accessType,
       status: auth.status,
       startTime: auth.startTime,
       endTime: auth.endTime

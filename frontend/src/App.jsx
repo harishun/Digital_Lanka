@@ -395,6 +395,7 @@ function App() {
           <OfficerDashboard
             currentNic={currentNic}
             loadData={loadData}
+            onSwitchToCitizen={() => setActiveTab('CITIZEN')}
           />
         )}
 

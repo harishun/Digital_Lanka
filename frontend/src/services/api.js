@@ -125,6 +125,8 @@ const saveDb = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
 // ── Citizen profile (local reference only) ───────────────────────────────────
 export const getCitizen = (nic) => DEFAULT_CITIZENS[nic] || null;
+export const getCitizenProfile = (nic) => DEFAULT_CITIZENS[nic] || DEFAULT_CITIZENS["197204509123"];
+
 
 // ── JWT authentication helper ────────────────────────────────────────────────
 const loginAndGetToken = async (nic = null) => {

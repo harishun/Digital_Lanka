@@ -36,24 +36,19 @@ export default function DocumentDetailsModal({
             top: '0px', 
             float: 'right', 
             zIndex: 20,
-            background: '#dc2626', 
-            color: '#ffffff', 
+            background: 'none', 
+            color: '#dc2626', 
             border: 'none', 
-            borderRadius: '50%', 
-            width: '34px', 
-            height: '34px', 
-            minWidth: '34px',
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
+            fontSize: '28px', 
+            fontWeight: '800', 
             cursor: 'pointer', 
-            boxShadow: '0 4px 12px rgba(220, 38, 38, 0.45)',
-            transition: 'transform 0.15s ease' 
+            lineHeight: 1
           }}
-          title="Close Inspection Modal"
+          title="Close Modal"
         >
-          <span className="material-icons" style={{ fontSize: '20px', fontWeight: 'bold' }}>close</span>
+          ✕
         </button>
+
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--c-card-border, #edf2f7)', paddingBottom: '16px', paddingRight: '40px' }}>
@@ -266,24 +261,7 @@ export default function DocumentDetailsModal({
           <p style={{ fontSize: '13px', color: 'var(--c-secondary)', fontStyle: 'italic' }}>Loading document parameters from DMT government registry...</p>
         )}
 
-        {/* Footer */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--c-card-border, #edf2f7)', paddingTop: '20px', marginTop: '24px' }}>
-          <button 
-            onClick={onClose} 
-            className="btn-primary" 
-            style={{ 
-              padding: '10px 28px', 
-              fontWeight: '800', 
-              background: '#dc2626', 
-              color: '#ffffff', 
-              border: 'none', 
-              borderRadius: '8px', 
-              boxShadow: '0 4px 14px rgba(220,38,38,0.35)' 
-            }}
-          >
-            CLOSE INSPECTION
-          </button>
-        </div>
+
 
       </div>
     </div>

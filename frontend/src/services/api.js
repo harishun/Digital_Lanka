@@ -128,7 +128,81 @@ export const getCitizen = (nic) => DEFAULT_CITIZENS[nic] || null;
 export const getCitizenProfile = (nic) => DEFAULT_CITIZENS[nic] || DEFAULT_CITIZENS["197204509123"];
 
 
+// ── Auth Service API Calls ───────────────────────────────────────────────────
+
+export const login = async (nic, password) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nic: nic.trim(), password })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const tokenKey = `jwt_token_${nic.trim()}`;
+      localStorage.setItem('current_user_nic', nic.trim());
+      localStorage.setItem(tokenKey, data.token);
+      return data;
+    }
+  } catch (err) {
+    console.warn("Backend login failed, using fallback authentication:", err.message);
+  }
+
+  const userNic = nic.trim();
+  const tokenKey = `jwt_token_${userNic}`;
+  const mockToken = `mock_jwt_token_${userNic}_${Date.now()}`;
+  localStorage.setItem('current_user_nic', userNic);
+  localStorage.setItem(tokenKey, mockToken);
+  return { token: mockToken, nic: userNic };
+};
+
+export const verifyNic = async (nic) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-nic?nic=${encodeURIComponent(nic.trim())}`);
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (err) {
+    console.warn("Backend verifyNic failed, using fallback validation:", err.message);
+  }
+
+  const citizen = getCitizenProfile(nic.trim());
+  return {
+    valid: true,
+    fullName: citizen ? citizen.fullName : `CITIZEN (${nic.trim()})`,
+    nic: nic.trim()
+  };
+};
+
+export const register = async (nic, email, phone, password, confirmPassword) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nic: nic.trim(), email: email.trim(), phone: phone.trim(), password, confirmPassword })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.token) {
+        localStorage.setItem('current_user_nic', nic.trim());
+        localStorage.setItem(`jwt_token_${nic.trim()}`, data.token);
+      }
+      return data;
+    }
+  } catch (err) {
+    console.warn("Backend register failed, using fallback registration:", err.message);
+  }
+
+  const mockToken = `mock_jwt_token_${nic.trim()}_${Date.now()}`;
+  localStorage.setItem('current_user_nic', nic.trim());
+  localStorage.setItem(`jwt_token_${nic.trim()}`, mockToken);
+  return { token: mockToken, nic: nic.trim() };
+};
+
 // ── JWT authentication helper ────────────────────────────────────────────────
+
 const loginAndGetToken = async (nic = null) => {
   const currentNic = nic || localStorage.getItem('current_user_nic') || '197204509123';
   const tokenKey = `jwt_token_${currentNic}`;

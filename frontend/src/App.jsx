@@ -13,6 +13,9 @@ import AccessControlModal from './components/AccessControlModal';
 import OfficerDashboard from './components/OfficerDashboard';
 import VehicleRegistrationForm from './components/VehicleRegistrationForm';
 import CitizenCitationsList from './components/CitizenCitationsList';
+import LoginPage from './components/LoginPage';
+import SignupPage from './components/SignupPage';
+
 
 
 function App() {
@@ -32,6 +35,17 @@ function App() {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
   const [isRegistrationFormOpen, setIsRegistrationFormOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('NONE'); // 'NONE' | 'LOGIN' | 'SIGNUP'
+
+  const handleLoginSuccess = (token, userNic) => {
+    if (userNic) {
+      setCurrentNic(userNic);
+      localStorage.setItem('current_user_nic', userNic);
+    }
+    setAuthMode('NONE');
+    loadData();
+  };
+
 
   const [currentNic, setCurrentNic] = useState(() => {
     const saved = localStorage.getItem('current_user_nic');
@@ -338,7 +352,9 @@ function App() {
               currentNic={currentNic}
               handlePersonaChange={handlePersonaChange}
               personas={personas}
+              onOpenAuth={() => setAuthMode('LOGIN')}
             />
+
 
             {/* Main Two-Column Layout */}
             <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '32px' }}>
@@ -447,6 +463,48 @@ function App() {
             }}
           />
         )}
+
+        {/* Authentication Modal Overlay (Login / Citizen Signup) */}
+        {authMode !== 'NONE' && (
+          <div className="modal-overlay" style={{ zIndex: 1000 }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '480px' }}>
+              <button
+                onClick={() => setAuthMode('NONE')}
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  zIndex: 1010,
+                  background: 'none',
+                  border: 'none',
+                  color: '#dc2626',
+                  fontSize: '28px',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  lineHeight: 1
+                }}
+                title="Close Authentication Window"
+              >
+                ✕
+              </button>
+
+              {authMode === 'LOGIN' && (
+                <LoginPage
+                  onLoginSuccess={handleLoginSuccess}
+                  onSwitchToSignup={() => setAuthMode('SIGNUP')}
+                />
+              )}
+
+              {authMode === 'SIGNUP' && (
+                <SignupPage
+                  onSignupSuccess={handleLoginSuccess}
+                  onSwitchToLogin={() => setAuthMode('LOGIN')}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
 
 
       </div>

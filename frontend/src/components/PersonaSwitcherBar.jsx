@@ -3,7 +3,8 @@ import React from 'react';
 /**
  * PersonaSwitcherBar — Reusable component for switching active citizen personas.
  */
-export default function PersonaSwitcherBar({ currentNic, handlePersonaChange, personas }) {
+export default function PersonaSwitcherBar({ currentNic, handlePersonaChange, personas, onOpenAuth }) {
+
   return (
     <div 
       className="persona-switcher-bar glass-card" 
@@ -25,7 +26,7 @@ export default function PersonaSwitcherBar({ currentNic, handlePersonaChange, pe
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--c-secondary)' }}>Switch persona to test authorization flow</p>
         </div>
       </div>
-      <div style={{ marginLeft: 'auto' }}>
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <select 
           value={currentNic} 
           onChange={handlePersonaChange} 
@@ -46,7 +47,31 @@ export default function PersonaSwitcherBar({ currentNic, handlePersonaChange, pe
             <option key={p.nic} value={p.nic}>{p.name}</option>
           ))}
         </select>
+
+        {onOpenAuth && (
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            className="btn-primary"
+            style={{
+              padding: '10px 16px',
+              fontSize: '13.5px',
+              fontWeight: '800',
+              borderRadius: '8px',
+              background: '#22c55e',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <span className="material-icons" style={{ fontSize: '18px' }}>lock</span>
+            Sign In / Register
+          </button>
+        )}
       </div>
+
     </div>
   );
 }

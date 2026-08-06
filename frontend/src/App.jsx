@@ -14,12 +14,12 @@ import OfficerDashboard from './components/OfficerDashboard';
 import VehicleRegistrationForm from './components/VehicleRegistrationForm';
 import CitizenCitationsList from './components/CitizenCitationsList';
 import LoginPage from './components/LoginPage';
-import SignupPage from './components/SignupPage';
-
-
+import AdminDashboard from './components/AdminDashboard';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('CITIZEN'); // 'CITIZEN' | 'OFFICER'
+  const [activeTab, setActiveTab] = useState('CITIZEN'); // 'CITIZEN' | 'OFFICER' | 'ADMIN' | 'SUPER_ADMIN'
+
 
   // Night Mode / Theme State
   const [theme, setTheme] = useState(() => {
@@ -41,13 +41,13 @@ function App() {
 
   const [currentNic, setCurrentNic] = useState(() => {
     const saved = localStorage.getItem('current_user_nic');
-    const activeNics = ['197204509123', '198503402948', '199003402948', '198012304958', '199556708123', '200508901234'];
-    if (!saved || !activeNics.includes(saved)) {
+    if (!saved) {
       localStorage.setItem('current_user_nic', '197204509123');
       return '197204509123';
     }
     return saved;
   });
+
 
   const [currentUser, setCurrentUser] = useState(null);
   const [vehicles, setVehicles] = useState([]);
@@ -93,6 +93,10 @@ function App() {
       const matched = personas.find(p => p.nic === userNic);
       if (matched && matched.role === 'OFFICER') {
         setActiveTab('OFFICER');
+      } else if (matched && matched.role === 'ADMIN') {
+        setActiveTab('ADMIN');
+      } else if (matched && matched.role === 'ROOT_ADMIN') {
+        setActiveTab('SUPER_ADMIN');
       } else {
         setActiveTab('CITIZEN');
       }
@@ -111,10 +115,15 @@ function App() {
     const matched = personas.find(p => p.nic === nextNic);
     if (matched && matched.role === 'OFFICER') {
       setActiveTab('OFFICER');
+    } else if (matched && matched.role === 'ADMIN') {
+      setActiveTab('ADMIN');
+    } else if (matched && matched.role === 'ROOT_ADMIN') {
+      setActiveTab('SUPER_ADMIN');
     } else {
       setActiveTab('CITIZEN');
     }
   };
+
 
 
   useEffect(() => {
@@ -322,15 +331,59 @@ function App() {
                 fontSize: '14px',
                 fontWeight: '700',
                 cursor: 'pointer',
-                border: activeTab === 'OFFICER' ? '2px solid #0f172a' : '1px solid var(--glass-border)',
-                background: activeTab === 'OFFICER' ? '#0f172a' : 'var(--c-surface)',
+                border: activeTab === 'OFFICER' ? '2px solid #3b82f6' : '1px solid var(--glass-border)',
+                background: activeTab === 'OFFICER' ? '#1e293b' : 'var(--c-surface)',
                 color: activeTab === 'OFFICER' ? '#ffffff' : 'var(--c-text)',
-                boxShadow: activeTab === 'OFFICER' ? '0 4px 14px rgba(15, 23, 42, 0.3)' : 'none',
+                boxShadow: activeTab === 'OFFICER' ? '0 4px 14px rgba(30, 41, 59, 0.3)' : 'none',
                 transition: 'all 0.2s ease'
               }}
             >
               <span className="material-icons" style={{ fontSize: '20px', color: activeTab === 'OFFICER' ? '#60a5fa' : 'inherit' }}>local_police</span>
               Officer Dashboard
+            </button>
+
+            <button
+              onClick={() => setActiveTab('ADMIN')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 24px',
+                borderRadius: '30px',
+                fontSize: '14px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: activeTab === 'ADMIN' ? '2px solid #2563eb' : '1px solid var(--glass-border)',
+                background: activeTab === 'ADMIN' ? '#1e3a8a' : 'var(--c-surface)',
+                color: activeTab === 'ADMIN' ? '#ffffff' : 'var(--c-text)',
+                boxShadow: activeTab === 'ADMIN' ? '0 4px 14px rgba(37, 99, 235, 0.3)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <span className="material-icons" style={{ fontSize: '20px', color: activeTab === 'ADMIN' ? '#93c5fd' : 'inherit' }}>admin_panel_settings</span>
+              Admin Portal
+            </button>
+
+            <button
+              onClick={() => setActiveTab('SUPER_ADMIN')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 24px',
+                borderRadius: '30px',
+                fontSize: '14px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: activeTab === 'SUPER_ADMIN' ? '2px solid #eab308' : '1px solid var(--glass-border)',
+                background: activeTab === 'SUPER_ADMIN' ? '#0f172a' : 'var(--c-surface)',
+                color: activeTab === 'SUPER_ADMIN' ? '#fde047' : 'var(--c-text)',
+                boxShadow: activeTab === 'SUPER_ADMIN' ? '0 4px 14px rgba(234, 179, 8, 0.3)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <span className="material-icons" style={{ fontSize: '20px', color: '#fde047' }}>verified</span>
+              Super Admin
             </button>
 
             {/* Night Mode / Light Mode Toggle Button */}
@@ -439,6 +492,21 @@ function App() {
             onSwitchToCitizen={() => setActiveTab('CITIZEN')}
           />
         )}
+
+        {/* Tab 3: System Administrator DRP Lookup Portal Component */}
+        {activeTab === 'ADMIN' && (
+          <AdminDashboard
+            currentNic={currentNic}
+          />
+        )}
+
+        {/* Tab 4: Super Admin Governance & Officer Promotions Terminal Component */}
+        {activeTab === 'SUPER_ADMIN' && (
+          <SuperAdminDashboard
+            currentNic={currentNic}
+          />
+        )}
+
 
         {/* Dedicated Document Details Modal Component */}
         <DocumentDetailsModal

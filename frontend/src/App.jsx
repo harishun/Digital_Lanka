@@ -341,40 +341,29 @@ function App() {
             {/* Main Two-Column Layout */}
             <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '32px' }}>
               
-              {/* Left Column: Vehicle Carousel & Shared Vehicles OR Registration Form */}
+              {/* Left Column: Vehicle Carousel & Shared Vehicles */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 
-                {isRegistrationFormOpen ? (
-                  <VehicleRegistrationForm 
-                    currentNic={currentNic} 
-                    onClose={() => setIsRegistrationFormOpen(false)} 
-                    onSuccess={() => {
-                      setIsRegistrationFormOpen(false);
-                      loadData();
-                    }}
-                  />
-                ) : (
-                  <>
-                    {/* Reusable Vehicle Carousel Component */}
-                    <VehicleCarousel
-                      vehicles={vehicles}
-                      activeVehicleIndex={activeVehicleIndex}
-                      setActiveVehicleIndex={setActiveVehicleIndex}
-                      handlePrevVehicle={handlePrevVehicle}
-                      handleNextVehicle={handleNextVehicle}
-                      openAccessControlModal={openAccessControlModal}
-                      openDocModal={openDocModal}
+                {/* Reusable Vehicle Carousel Component */}
+                <VehicleCarousel
+                  vehicles={vehicles}
+                  activeVehicleIndex={activeVehicleIndex}
+                  setActiveVehicleIndex={setActiveVehicleIndex}
+                  handlePrevVehicle={handlePrevVehicle}
+                  handleNextVehicle={handleNextVehicle}
+                  openAccessControlModal={openAccessControlModal}
+                  openDocModal={openDocModal}
                   handleMarkAsStolen={handleMarkAsStolen}
-                      isModalOpen={isDocModalOpen || isAccessControlModalOpen}
-                      onRegisterClick={() => setIsRegistrationFormOpen(true)}
-                    />
+                  isModalOpen={isDocModalOpen || isAccessControlModalOpen || isRegistrationFormOpen}
+                  onRegisterClick={() => setIsRegistrationFormOpen(true)}
+                />
 
-                    {/* Reusable Shared Vehicles Component */}
-                    <SharedVehiclesList
-                      authorizedVehicles={authorizedVehicles}
-                    />
-                  </>
-                )}
+                {/* Reusable Shared Vehicles Component */}
+                <SharedVehiclesList
+                  authorizedVehicles={authorizedVehicles}
+                />
+
+
 
               </div>
 
@@ -437,6 +426,19 @@ function App() {
           statusMessage={statusMessage}
           isError={isError}
         />
+
+        {/* Vehicle Registration Form Modal (top-level so overlay covers full viewport) */}
+        {isRegistrationFormOpen && (
+          <VehicleRegistrationForm 
+            currentNic={currentNic} 
+            onClose={() => setIsRegistrationFormOpen(false)} 
+            onSuccess={() => {
+              setIsRegistrationFormOpen(false);
+              loadData();
+            }}
+          />
+        )}
+
 
       </div>
     </div>

@@ -174,7 +174,7 @@
 
 .form-input {
   width: 100%;
-  padding: 12px 14px 12px 42px;
+  padding: 12px 14px 12px 80px;
   border: 1px solid var(--glass-border);
   border-radius: 8px;
   font-family: var(--font-public-sans);
@@ -189,6 +189,11 @@
   border-color: var(--c-primary);
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(0, 35, 102, 0.1);
+}
+
+.form-input::placeholder {
+  text-align: left;
+  color: #94a3b8;
 }
 
 .form-input:disabled {

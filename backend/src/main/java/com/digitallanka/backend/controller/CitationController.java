@@ -2,7 +2,7 @@ package com.digitallanka.backend.controller;
 
 import com.digitallanka.backend.entity.Citation;
 import com.digitallanka.backend.entity.CitationStatus;
-import com.digitallanka.backend.entity.User;
+import com.digitallanka.backend.model.User;
 import com.digitallanka.backend.repository.CitationRepository;
 import com.digitallanka.backend.repository.UserRepository;
 import com.digitallanka.backend.util.FileUploadUtil;
@@ -31,44 +31,47 @@ public class CitationController {
     // Get citations for the logged-in citizen
     @GetMapping("/my")
     public ResponseEntity<?> getMyCitations() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<User> userOpt = userRepository.findByNic(userDetails.getUsername());
+        try {
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Optional<User> userOpt = userRepository.findByNic(userDetails.getUsername());
 
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            List<Citation> myCitations = citationRepository.findByOffender(userOpt.get());
+            return ResponseEntity.ok(myCitations);
+        } catch (Exception e) {
+            return ResponseEntity.ok(List.of());
         }
-
-        List<Citation> myCitations = citationRepository.findByOffender(userOpt.get());
-        return ResponseEntity.ok(myCitations);
     }
 
     // Citizen uploads receipt -> transitions to VERIFYING
     @PostMapping("/{id}/pay")
     public ResponseEntity<?> payCitation(@PathVariable Long id, @RequestParam("receipt") MultipartFile receipt) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<User> userOpt = userRepository.findByNic(userDetails.getUsername());
-
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-
-        Optional<Citation> citationOpt = citationRepository.findById(id);
-        if (citationOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Citation not found");
-        }
-
-        Citation citation = citationOpt.get();
-
-        // Check if this citation actually belongs to the user
-        if (!citation.getOffender().getNic().equals(userOpt.get().getNic())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
-        }
-
-        if (citation.getStatus() != CitationStatus.PENDING_PAYMENT) {
-            return ResponseEntity.badRequest().body("Citation is not pending payment");
-        }
-
         try {
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Optional<User> userOpt = userRepository.findByNic(userDetails.getUsername());
+
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            Optional<Citation> citationOpt = citationRepository.findById(id);
+            if (citationOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Citation not found");
+            }
+
+            Citation citation = citationOpt.get();
+
+            if (citation.getOffender() != null && !citation.getOffender().getNic().equals(userOpt.get().getNic())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+            }
+
+            if (citation.getStatus() != CitationStatus.PENDING_PAYMENT) {
+                return ResponseEntity.badRequest().body("Citation is not pending payment");
+            }
+
             if (receipt != null && !receipt.isEmpty()) {
                 FileUploadUtil.saveFile("uploads/receipts", receipt);
                 citation.setStatus(CitationStatus.VERIFYING);

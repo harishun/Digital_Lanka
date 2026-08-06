@@ -116,8 +116,27 @@ const DEFAULT_CITIZENS = {
     vehicleClasses: [
       { classCode: "B", issuedDate: "2023-03-01", expiryDate: "2033-02-14", description: "Dual Purpose Vehicles" }
     ]
+  },
+  "197828430012": {
+    nic: "197828430012",
+    fullName: "INSP. S. JAYASURIYA",
+    role: "OFFICER",
+    gender: "Male",
+    dateOfBirth: "1978-08-28",
+    address: "Police Headquarters, Colombo 01",
+    dateOfIssue: "1998-05-15",
+    placeOfBirth: "Colombo",
+    licenseNumber: "POL-88219-HQ",
+    bloodGroup: "O+",
+    restrictions: "NONE",
+    donor: true,
+    vehicleClasses: [
+      { classCode: "A", issuedDate: "1998-05-15", expiryDate: "2035-08-28", description: "Motor Cycles" },
+      { classCode: "B", issuedDate: "1998-05-15", expiryDate: "2035-08-28", description: "Dual Purpose Vehicles" }
+    ]
   }
 };
+
 
 // ── Local state helpers ──────────────────────────────────────────────────────
 const getDb  = (key)       => JSON.parse(localStorage.getItem(key));

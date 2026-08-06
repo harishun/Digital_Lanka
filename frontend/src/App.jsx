@@ -37,14 +37,6 @@ function App() {
   const [isRegistrationFormOpen, setIsRegistrationFormOpen] = useState(false);
   const [authMode, setAuthMode] = useState('NONE'); // 'NONE' | 'LOGIN' | 'SIGNUP'
 
-  const handleLoginSuccess = (token, userNic) => {
-    if (userNic) {
-      setCurrentNic(userNic);
-      localStorage.setItem('current_user_nic', userNic);
-    }
-    setAuthMode('NONE');
-    loadData();
-  };
 
 
   const [currentNic, setCurrentNic] = useState(() => {
@@ -90,8 +82,40 @@ function App() {
     { nic: '199003402948', name: '👤 K.A. Don Perera (Citizen Driver)', role: 'CITIZEN' },
     { nic: '198012304958', name: '🚛 Mahinda Rathnayake (Heavy Lorry Driver)', role: 'CITIZEN' },
     { nic: '199556708123', name: '🚌 Tharindu Jayasuriya (Bus & Public Transport)', role: 'CITIZEN' },
-    { nic: '200508901234', name: '⚡ Shenali Perera (EV Owner & New Driver)', role: 'CITIZEN' }
+    { nic: '200508901234', name: '⚡ Shenali Perera (EV Owner & New Driver)', role: 'CITIZEN' },
+    { nic: '197828430012', name: '👮 Insp. S. Jayasuriya (Traffic Division Officer)', role: 'OFFICER' }
   ];
+
+  const handleLoginSuccess = (token, userNic) => {
+    if (userNic) {
+      setCurrentNic(userNic);
+      localStorage.setItem('current_user_nic', userNic);
+      const matched = personas.find(p => p.nic === userNic);
+      if (matched && matched.role === 'OFFICER') {
+        setActiveTab('OFFICER');
+      } else {
+        setActiveTab('CITIZEN');
+      }
+    }
+    setActiveVehicleIndex(0);
+    setAuthMode('NONE');
+    loadData();
+  };
+
+  const handlePersonaChange = (e) => {
+    const nextNic = e.target.value;
+    setCurrentNic(nextNic);
+    setActiveVehicleIndex(0);
+    setIsRegistrationFormOpen(false);
+    localStorage.setItem('current_user_nic', nextNic);
+    const matched = personas.find(p => p.nic === nextNic);
+    if (matched && matched.role === 'OFFICER') {
+      setActiveTab('OFFICER');
+    } else {
+      setActiveTab('CITIZEN');
+    }
+  };
+
 
   useEffect(() => {
     loadData();
@@ -130,13 +154,6 @@ function App() {
     setActiveVehicleIndex((prev) => (prev < vehicles.length - 1 ? prev + 1 : 0));
   };
 
-  const handlePersonaChange = (e) => {
-    const nextNic = e.target.value;
-    setCurrentNic(nextNic);
-    setActiveVehicleIndex(0);
-    setIsRegistrationFormOpen(false);
-    localStorage.setItem('current_user_nic', nextNic);
-  };
 
   const openDocModal = async (vehicle, targetDoc = 'vrc') => {
     setCurrentVehicle(vehicle);

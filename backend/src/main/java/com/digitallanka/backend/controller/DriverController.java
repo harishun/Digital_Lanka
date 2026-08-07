@@ -57,6 +57,7 @@ public class DriverController {
         List<VehicleAuthorization> auths = authorizationRepository.findByAuthorizedNicAndStatus(
                 driverNic, VehicleAuthorization.Status.GRANTED);
 
+
         List<AuthorizedVehicleDto> list = auths.stream()
                 .map(auth -> buildDto(auth, driverNic))
                 .filter(java.util.Objects::nonNull)

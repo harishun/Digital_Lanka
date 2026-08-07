@@ -1,30 +1,39 @@
 version: '3.8'
+
 services:
-  mysql:
+  # ────────────────────────────────────────────────────────────
+  # 1. Digital Lanka Application Database Service
+  # ────────────────────────────────────────────────────────────
+  digital-lanka-db:
     image: mysql:8.0
-    container_name: digitallanka-mysql
+    container_name: digital_lanka_db
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: digitallanka
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: digital_lanka_db
+      MYSQL_USER: lanka_user
+      MYSQL_PASSWORD: lankapassword
     ports:
       - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - ./database/01_digital_lanka_app_db.sql:/docker-entrypoint-initdb.d/01_digital_lanka_app_db.sql
+      - app_db_data:/var/lib/mysql
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: digitallanka-phpmyadmin
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      PMA_USER: admin
-      PMA_PASSWORD: password
+  # ────────────────────────────────────────────────────────────
+  # 2. phpMyAdmin for Application Database
+  # ────────────────────────────────────────────────────────────
+  app_phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: app_phpmyadmin
+    restart: always
     ports:
-      - "8080:80"
-    depends_on:
-      - mysql
+      - "8083:80"
+    environment:
+      PMA_HOST: digital-lanka-db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+      UPLOAD_LIMIT: 64M
 
 volumes:
-  mysql-data:
+  app_db_data:

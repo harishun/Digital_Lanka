@@ -1,23 +1,179 @@
-@import "tailwindcss";
+:root {
+  --font-public-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Brand Colors from DESIGN.md (Light Mode) */
+  --c-bg: #faf8ff;
+  --c-surface: #ffffff;
+  --c-surface-dim: #dad9e0;
+  --c-primary: #002366;
+  --c-on-primary: #ffffff;
+  --c-secondary: #50606f;
+  --c-text: #1a1b20;
+  --c-text-variant: #444650;
+  --c-text-bright: #00113a;
+  
+  /* Card Specific Tokens (Light Mode) */
+  --c-card-bg: #ffffff;
+  --c-card-sub-bg: #f8fafc;
+  --c-card-border: #cbd5e1;
+  --c-card-text: #0f172a;
+  --c-card-subtext: #64748b;
+  
+  /* Semantic Colors */
+  --danger: #ba1a1a;
+  --success: #15803d;
+  --warning: #b45309;
+  
+  /* UI Borders & Shadows */
+  --glass-bg: #ffffff;
+  --glass-border: #c5c6d2;
+  --glass-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+  --outline: #757682;
+  
+  box-sizing: border-box;
+}
 
-@theme {
-  --color-darkBlue: #003366;
-  --color-lightBg: #f4f7f6;
+/* ── NIGHT / DARK MODE THEME TOKENS ────────────────────────────────────── */
+[data-theme="dark"] {
+  --c-bg: #090d16;
+  --c-surface: #111b2e;
+  --c-surface-dim: #1e293b;
+  --c-primary: #3b82f6;
+  --c-on-primary: #ffffff;
+  --c-secondary: #94a3b8;
+  --c-text: #e2e8f0;
+  --c-text-variant: #94a3b8;
+  --c-text-bright: #ffffff;
+  
+  /* Card Specific Tokens (Dark Mode) */
+  --c-card-bg: #131b2e;
+  --c-card-sub-bg: #1e293b;
+  --c-card-border: #334155;
+  --c-card-text: #f8fafc;
+  --c-card-subtext: #94a3b8;
+  
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  
+  --glass-bg: rgba(19, 27, 46, 0.95);
+  --glass-border: #1e293b;
+  --glass-shadow: 0px 12px 36px rgba(0, 0, 0, 0.55);
+  --outline: #334155;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
 body {
-    background-color: #f4f7f6; /* lightBg */
-    color: #333;
-    font-family: 'Public Sans', 'Outfit', 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-    margin: 0;
+  margin: 0;
+  font-family: var(--font-public-sans);
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-:root {
-  --font-public-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --c-primary: #002366;
-  --c-on-primary: #ffffff;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
+::-webkit-scrollbar-track {
+  background: var(--c-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-secondary);
+}
+
+/* Card Container from DESIGN.md */
+.glass-card {
+  background: var(--c-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  box-shadow: var(--glass-shadow);
+  padding: 32px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: var(--outline);
+  box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+/* Institutional Buttons */
+.btn-primary {
+  background: var(--c-primary);
+  color: var(--c-on-primary);
+  border: none;
+  font-family: var(--font-public-sans);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  box-shadow: 0px 4px 12px rgba(0, 35, 102, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1px solid var(--glass-border);
+  font-family: var(--font-public-sans);
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--c-surface-dim);
+  border-color: var(--outline);
+}
+
+/* Dark Mode Inputs & Selects Override */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] option {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -25,24 +181,4 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Used by the toasts in Dashboard.jsx — these classes were referenced in the
-   markup but never defined, so the toasts appeared with no animation. */
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(24px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-.animate-slide-in {
-  animation: slideIn 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.animate-slide-up {
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

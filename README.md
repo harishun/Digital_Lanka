@@ -1,65 +1,66 @@
-# Digital Lanka - Roadside Traffic Enforcement System
+# Digital Lanka — Integrated Traffic & Asset Hub
 
-This project is a web application developed for digital traffic law enforcement and citizen services in Sri Lanka. It connects a React frontend with a Spring Boot REST API backend to allow police officers to check vehicle registrations, verify driving licenses, and issue digital citations on the road.
+A modern smart ecosystem for digitalizing citizen identity credentials, driving authorization parameters, and traffic compliance enforcement.
 
-## Tech Stack
-- Backend: Java 17, Spring Boot 3, Spring Security (JWT), Spring Data JPA, MySQL / H2
-- Frontend: React 18, Vite, Tailwind CSS, Axios
-- Build Tools: Gradle (backend), npm (frontend)
+---
 
-## Key Features
-- Police Officer Dashboard:
-  - Lookup vehicle registration details by number plate.
-  - Check insurance and road tax (revenue license) validity.
-  - Automated alert for reported stolen vehicles with a direct vehicle seizure action button.
-  - Smart driving license card preview with multi-class vehicle endorsements.
-  - Issue digital traffic citations with GPS coordinates and timestamps.
-- Citizen Portal:
-  - View personal driving license card in standard ID card aspect ratio.
-  - Check pending traffic citations and fine payment status.
-- Admin Portal:
-  - Manage citation records and system users.
+## 🚀 How to Run the Application
 
-## Project Structure
-- backend/ : Spring Boot API server (runs on port 8081)
-- frontend/ : React Vite client application (runs on port 5173)
+This project consists of three main components that work together:
+1. **Mock Government APIs** (PHP + MySQL in Docker)
+2. **Spring Boot Backend** (Java + separate MySQL DB)
+3. **React Frontend** (Vite SPA)
 
-## How to Run Locally
+Follow these steps sequentially to launch the system:
 
-### 1. Start the Backend Server
-Open a terminal and navigate to the backend directory:
-```bash
-cd backend
-./gradlew bootRun
-```
-The API server will start on http://localhost:8081.
+### 1. Start the Government Mock APIs (Port 8081 & 8082)
+The mock APIs simulate the Department of Registration of Persons (DRP) and the Department of Motor Traffic (DMT).
+1. Open a terminal and navigate to the mock API folder:
+   ```bash
+   cd government-mock-apis
+   ```
+2. Start the Docker containers:
+   ```bash
+   docker compose up -d --build
+   ```
+   *This starts DRP REST API at `http://localhost:8081`, DMT REST API at `http://localhost:8082`, and the MySQL database server.*
 
-### 2. Start the Frontend Server
-Open a second terminal and navigate to the frontend directory:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The application will be accessible at http://localhost:5173 (or via the port 3000 redirect server).
+### 2. Start the Core Spring Boot Backend (Port 8080)
+The backend acts as the core traffic and asset engine, connecting to a separate database server.
+1. Open a new terminal and navigate to the backend folder:
+   ```bash
+   cd backend
+   ```
+2. Start the separate database container for the application:
+   ```bash
+   docker compose up -d
+   ```
+   *This launches the application database `app_mysql` running on port `3307`.*
+3. Run the Spring Boot application:
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+   *The backend will boot up, automatically create the schemas in `digital_lanka_db`, and listen on `http://localhost:8080`.*
 
-## Sample Testing Data
+### 3. Launch the React Frontend (Port 5173)
+The civilian wallet web interface displaying smart e-NICs, driving logs, and traffic citation ledgers.
+1. Open a new terminal and navigate to the frontend folder:
+   ```bash
+   cd UI/digital_lanka
+   ```
+2. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+3. Open your browser and navigate to the local address:
+   ```text
+   http://localhost:5173
+   ```
 
-### Officer Credentials (Roadside Enforcement)
-- NIC / Badge Number: 198515030045
-- Password: password
+---
 
-### Citizen Credentials
-- NIC: 199012345678
-- Password: password
+## 🛠️ Tech Stack & Directory Structure
 
-### Test Vehicle Number Plates
-- WP CAD-1234 (Status: STOLEN - use this to test the stolen vehicle alert and vehicle seizure button)
-- WP LA-9999 (Status: ACTIVE - all compliance records valid)
-- CBA-1234 (Status: ACTIVE - expired revenue license)
-
-### Test Driver NICs for License Verification
-- 197204509123 (W.M. Sugathadasa - 4 vehicle classes: A1, A, B, G1)
-- 198503402948 (Arjun Ranaweera - 2 vehicle classes: A, B)
-- 199003402948 (K.A. Don Perera - 1 vehicle class: B)
-- 198012304958 (Mahinda Rathnayake - heavy commercial classes: C1, C, CE)
+*   **`UI/digital_lanka/`**: React 19, Vite 8, Google Fonts, and Google Material Icons CDN.
+*   **`backend/`**: Spring Boot 3, Hibernate JPA, Spring Security, MySQL Connector.
+*   **`government-mock-apis/`**: Slim PHP mock containers simulating REST microservices.

@@ -1,13 +1,12 @@
 package com.digitallanka.backend.repository;
 
 import com.digitallanka.backend.entity.Citation;
+import com.digitallanka.backend.entity.CitationStatus;
+import com.digitallanka.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
-import com.digitallanka.backend.entity.User;
-import com.digitallanka.backend.entity.CitationStatus;
 
 @Repository
 public interface CitationRepository extends JpaRepository<Citation, Long> {

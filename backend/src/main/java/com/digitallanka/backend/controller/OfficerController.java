@@ -38,24 +38,15 @@ public class OfficerController {
         String officerNic = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
             TheftCase theft = stolenTrackingService.markRecovered(officerNic, vehicleId, request.getRemarks());
-
-            // Close the loop with the person who reported it stolen.
-            com.digitallanka.backend.model.Notification cleared =
-                    new com.digitallanka.backend.model.Notification();
-            cleared.setId(java.util.UUID.randomUUID().toString());
-            cleared.setRecipientNic(theft.getReporterNic());
-            cleared.setTitle("Recovery Verified — " + vehicleId);
-            cleared.setMessage("Law enforcement has verified the recovery of your vehicle " + vehicleId
-                    + ". The theft flag has been lifted and the vehicle is active again.");
-            cleared.setType(com.digitallanka.backend.model.Notification.Type.RECOVERY);
-            cleared.setReferenceId(theft.getId());
-            cleared.setRead(false);
-            notificationRepository.save(cleared);
-
             return ResponseEntity.ok(theft);
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(new VehicleController.ErrorResponse(e.getMessage()));
         }
+    }
+
+    @GetMapping("/vehicles/stolen")
+    public ResponseEntity<?> getStolenVehicles() {
+        return ResponseEntity.ok(stolenTrackingService.getActiveStolenCases());
     }
 
     @GetMapping("/compliance/check")

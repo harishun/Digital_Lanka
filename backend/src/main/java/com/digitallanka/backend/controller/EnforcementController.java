@@ -1,237 +1,320 @@
 package com.digitallanka.backend.controller;
 
-import com.digitallanka.backend.dto.*;
-import com.digitallanka.backend.entity.*;
-import com.digitallanka.backend.repository.*;
-import com.digitallanka.backend.security.JwtUtils;
+import com.digitallanka.backend.client.GovApiClient;
+import com.digitallanka.backend.dto.CitationRequest;
+import com.digitallanka.backend.dto.DrivingLicenceResponse;
+import com.digitallanka.backend.dto.EnforcementDetailsResponse;
+import com.digitallanka.backend.dto.LicenceVehicleClassResponse;
+import com.digitallanka.backend.dto.VehicleDocumentsResponse;
+import com.digitallanka.backend.dto.VehicleRegistrationResponse;
+import com.digitallanka.backend.entity.Citation;
+import com.digitallanka.backend.entity.CitationStatus;
+import com.digitallanka.backend.model.Notification;
+import com.digitallanka.backend.model.User;
+import com.digitallanka.backend.repository.CitationRepository;
+import com.digitallanka.backend.repository.NotificationRepository;
+import com.digitallanka.backend.repository.UserRepository;
+import com.digitallanka.backend.security.EnforcementSessionService;
+import com.digitallanka.backend.security.EnforcementSessionService.EnforcementSession;
+import com.digitallanka.backend.service.StolenTrackingService;
+import com.digitallanka.backend.util.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import jakarta.servlet.http.HttpServletRequest;
-import com.digitallanka.backend.util.FileUploadUtil;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+/**
+ * EnforcementController — roadside compliance checks and penalty citations.
+ *
+ * <p>Every endpoint after {@code /search} requires a valid five-minute stop token
+ * (see {@link EnforcementSessionService}). That token — not the request body —
+ * is the source of truth for which vehicle and which driver are being acted on,
+ * so an officer cannot open a stop for one car and then issue a citation against
+ * another.
+ *
+ * <p>Reference data (citizen, licence, vehicle) is read live from the DRP and DMT
+ * government mock APIs through {@link GovApiClient}. Only application data —
+ * citations, notifications, theft cases — lives in the local database.
+ */
 @RestController
 @RequestMapping("/api/enforcement")
 public class EnforcementController {
 
     @Autowired
-    private JwtUtils jwtUtils;
+    private EnforcementSessionService sessionService;
 
     @Autowired
-    private VehicleRepository vehicleRepository;
-
-    @Autowired
-    private LicenseRepository licenseRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private GovApiClient govApiClient;
 
     @Autowired
     private CitationRepository citationRepository;
 
     @Autowired
-    private com.digitallanka.backend.repository.NotificationRepository notificationRepository;
+    private UserRepository userRepository;
 
-    // 1. Search endpoint to initiate the 5-min session
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private StolenTrackingService stolenTrackingService;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 1. Open a stop — the only endpoint that does not need a session token
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * POST /api/enforcement/search
+     *
+     * <p>Verifies the vehicle and driver exist, then mints a five-minute token
+     * scoped to that pair. The optional plate photograph is stored as evidence.
+     */
     @PostMapping("/search")
-    public ResponseEntity<?> searchCompliance(@RequestParam("plateNo") String plateNo,
-                                              @RequestParam("dlNo") String dlNo,
-                                              @RequestParam(value = "plateImage", required = false) MultipartFile plateImage) {
-        
-        try {
-            if (plateImage != null && !plateImage.isEmpty()) {
+    public ResponseEntity<?> openStop(@RequestParam("plateNo") String plateNo,
+                                      @RequestParam("driverNic") String driverNic,
+                                      @RequestParam(value = "plateImage", required = false) MultipartFile plateImage) {
+
+        String officerNic = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<VehicleRegistrationResponse> vehicleOpt = govApiClient.getVehicleByPlate(plateNo.trim());
+        if (vehicleOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Vehicle " + plateNo + " not found in government records.");
+        }
+
+        Optional<DrivingLicenceResponse> licenceOpt = govApiClient.getDrivingLicenceByNic(driverNic.trim());
+        if (licenceOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No driving licence found for NIC " + driverNic + ".");
+        }
+
+        // Evidence photo is best-effort: a failed upload must not block the stop.
+        if (plateImage != null && !plateImage.isEmpty()) {
+            try {
                 FileUploadUtil.saveFile("uploads/plates", plateImage);
+            } catch (Exception e) {
+                System.out.println("WARN: could not save plate image: " + e.getMessage());
             }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not upload plate image");
         }
 
-        // Find vehicle and license (by DL No or Driver NIC No) to ensure they exist
-        Optional<Vehicle> vehicleOpt = vehicleRepository.findByPlateNo(plateNo);
-        Optional<License> licenseOpt = licenseRepository.findByDlNo(dlNo);
-        if (licenseOpt.isEmpty()) {
-            licenseOpt = licenseRepository.findByDriverNic(dlNo);
-        }
+        String sessionToken = sessionService.openSession(officerNic, plateNo.trim(), driverNic.trim());
 
-        if (vehicleOpt.isEmpty() || licenseOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle or License not found");
-        }
-
-        String resolvedDlNo = licenseOpt.get().getDlNo();
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        
-        // Generate a 5-minute time-locked JWT specifically for this session
-        String sessionToken = jwtUtils.generateEnforcementToken(
-                userDetails.getUsername(), 
-                plateNo, 
-                resolvedDlNo
-        );
-
-        return ResponseEntity.ok(new JwtResponse(sessionToken, "ENFORCEMENT_SESSION"));
+        return ResponseEntity.ok(new SessionResponse(sessionToken, 300));
     }
 
-    // 2. Fetch details for display (Requires the 5-min session token)
+    // ─────────────────────────────────────────────────────────────────────────
+    // 2. Everything below is gated by the stop token
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * GET /api/enforcement/details
+     *
+     * <p>Returns the driver and vehicle compliance record. Note the plate and NIC
+     * come from the <b>token</b>, never from the request — that is the scope
+     * guarantee in code.
+     */
     @GetMapping("/details")
-    public ResponseEntity<?> getDetails(HttpServletRequest request) {
-        String jwt = (String) request.getAttribute("jwt");
-        if (jwt == null || !"ENFORCEMENT".equals(jwtUtils.extractClaimAsString(jwt, "type"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid or expired enforcement session");
+    public ResponseEntity<?> getDetails(
+            @RequestHeader(value = EnforcementSessionService.SESSION_HEADER, required = false) String sessionToken) {
+
+        Optional<EnforcementSession> sessionOpt = sessionService.readSession(sessionToken);
+        if (sessionOpt.isEmpty()) {
+            return privacyLockout();
+        }
+        EnforcementSession session = sessionOpt.get();
+
+        DrivingLicenceResponse licence = govApiClient.getDrivingLicenceByNic(session.getDriverNic()).orElse(null);
+        VehicleRegistrationResponse vehicle = govApiClient.getVehicleByPlate(session.getPlateNo()).orElse(null);
+
+        if (licence == null || vehicle == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Government records unavailable for this stop.");
         }
 
-        String plateNo = jwtUtils.extractClaimAsString(jwt, "plateNo");
-        String dlNo = jwtUtils.extractClaimAsString(jwt, "dlNo");
+        // Licence classes → "A1, A, B"
+        String validOperators = licence.getVehicleClasses() == null ? ""
+                : licence.getVehicleClasses().stream()
+                        .map(LicenceVehicleClassResponse::getClassCode)
+                        .filter(java.util.Objects::nonNull)
+                        .collect(Collectors.joining(", "));
 
-        Vehicle vehicle = vehicleRepository.findByPlateNo(plateNo).orElse(null);
-        License license = licenseRepository.findByDlNo(dlNo).orElse(null);
-
-        if (vehicle == null || license == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Data not found");
+        // Insurance and revenue come from the DMT documents endpoint when available.
+        String insuranceStatus = "UNKNOWN";
+        String revenueStatus = "UNKNOWN";
+        Optional<VehicleDocumentsResponse> docsOpt = govApiClient.getVehicleDocuments(session.getPlateNo());
+        if (docsOpt.isPresent()) {
+            VehicleDocumentsResponse docs = docsOpt.get();
+            if (docs.getInsurance() != null) {
+                insuranceStatus = isInFuture(docs.getInsurance().getExpiryDate()) ? "VALID" : "EXPIRED";
+            }
+            if (docs.getRevenue() != null) {
+                revenueStatus = docs.getRevenue().getStatus() != null
+                        ? docs.getRevenue().getStatus()
+                        : (isInFuture(docs.getRevenue().getExpiryDate()) ? "VALID" : "EXPIRED");
+            }
         }
 
-        User driver = license.getDriver();
+        String vehicleStatus = stolenTrackingService.isStolenVehicle(session.getPlateNo()) ? "STOLEN" : "ACTIVE";
 
         EnforcementDetailsResponse response = EnforcementDetailsResponse.builder()
-                .driverNic(driver.getNic())
-                .driverName(driver.getName())
-                .bloodGroup(driver.getBloodGroup())
-                .dlNo(license.getDlNo())
-                .validOperators(license.getValidOperators())
-                .plateNo(vehicle.getPlateNo())
-                .insuranceStatus(vehicle.getInsuranceStatus())
-                .revenueStatus(vehicle.getRevenueStatus())
-                .status(vehicle.getStatus())
+                .driverNic(licence.getNic())
+                .driverName(licence.getFullNameOnCard())
+                .bloodGroup(licence.getBloodGroup())
+                .dlNo(licence.getLicenceNumber())
+                .validOperators(validOperators)
+                .plateNo(vehicle.getPlateNumber())
+                .insuranceStatus(insuranceStatus)
+                .revenueStatus(revenueStatus)
+                .status(vehicleStatus)
                 .build();
 
         return ResponseEntity.ok(response);
     }
 
-    // 3. Issue citation (Requires the 5-min session token)
+    /**
+     * POST /api/enforcement/citation
+     *
+     * <p>Issues a penalty citation against the <b>driver</b> named in the token.
+     * The citation is recorded against the officer from the token's subject, so
+     * every fine is attributable.
+     */
     @PostMapping("/citation")
-    public ResponseEntity<?> issueCitation(@RequestBody CitationRequest citationRequest, HttpServletRequest request) {
-        String jwt = (String) request.getAttribute("jwt");
-        if (jwt == null || !"ENFORCEMENT".equals(jwtUtils.extractClaimAsString(jwt, "type"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Privacy lockout: Time limit exceeded.");
+    public ResponseEntity<?> issueCitation(
+            @RequestHeader(value = EnforcementSessionService.SESSION_HEADER, required = false) String sessionToken,
+            @RequestBody CitationRequest request) {
+
+        Optional<EnforcementSession> sessionOpt = sessionService.readSession(sessionToken);
+        if (sessionOpt.isEmpty()) {
+            return privacyLockout();
         }
+        EnforcementSession session = sessionOpt.get();
 
-        String dlNo = jwtUtils.extractClaimAsString(jwt, "dlNo");
-        Optional<License> licenseOpt = licenseRepository.findByDlNo(dlNo);
-
-        if (licenseOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Driver not found");
+        // The offender must have an application account to receive and pay the fine.
+        Optional<User> offenderOpt = userRepository.findByNic(session.getDriverNic());
+        if (offenderOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Driver " + session.getDriverNic() + " has no Digital Lanka account, so a citation cannot be issued.");
         }
-
-        User offender = licenseOpt.get().getDriver();
 
         String refNum = "CIT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         Citation citation = Citation.builder()
                 .referenceNumber(refNum)
-                .offender(offender)
-                .violationType(citationRequest.getViolationType())
-                .gpsCoordinates(citationRequest.getGpsCoordinates())
-                .timestamp(LocalDateTime.now()) // Exact exact timestamp lockdown
+                .offender(offenderOpt.get())
+                .plateNumber(session.getPlateNo())          // from the token, not the client
+                .violationType(request.getViolationType())
+                .gpsCoordinates(request.getGpsCoordinates())
+                .fineAmount(request.getFineAmount())
+                .officerNic(session.getOfficerNic())        // from the token, not the client
+                .timestamp(LocalDateTime.now())             // server time — cannot be forged
                 .status(CitationStatus.PENDING_PAYMENT)
                 .build();
 
         citationRepository.save(citation);
 
-        // Push the citation into the offender's inbox so it surfaces on their
-        // dashboard immediately, rather than only inside the Citations tab.
-        String plateNo = jwtUtils.extractClaimAsString(jwt, "plateNo");
-        notificationRepository.save(buildCitationNotification(offender.getNic(), refNum,
-                citationRequest.getViolationType(), plateNo));
+        notificationRepository.save(buildNotification(
+                session.getDriverNic(),
+                "Penalty Citation Issued — " + refNum,
+                "A penalty citation has been issued against you by Roadside Law Enforcement for vehicle "
+                        + session.getPlateNo() + ". Violation: " + request.getViolationType()
+                        + ". Reference: " + refNum
+                        + ". Please settle the fine and upload your payment receipt under 'My Citations'.",
+                refNum));
 
-        return ResponseEntity.ok("Citation issued successfully. Ref: " + refNum);
+        return ResponseEntity.ok(citation);
     }
 
-    // 4. Seize a stolen vehicle at the roadside (requires the 5-min session token)
+    /**
+     * POST /api/enforcement/seizure
+     *
+     * <p>Records a roadside seizure of a stolen vehicle and alerts the registered
+     * <b>owner</b> — not the driver. A citation punishes the person driving; a
+     * seizure removes the owner's property, so they are the one who must act.
+     */
     @PostMapping("/seizure")
-    public ResponseEntity<?> seizeVehicle(HttpServletRequest request) {
-        String jwt = (String) request.getAttribute("jwt");
-        if (jwt == null || !"ENFORCEMENT".equals(jwtUtils.extractClaimAsString(jwt, "type"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Privacy lockout: Time limit exceeded.");
+    public ResponseEntity<?> seizeVehicle(
+            @RequestHeader(value = EnforcementSessionService.SESSION_HEADER, required = false) String sessionToken) {
+
+        Optional<EnforcementSession> sessionOpt = sessionService.readSession(sessionToken);
+        if (sessionOpt.isEmpty()) {
+            return privacyLockout();
+        }
+        EnforcementSession session = sessionOpt.get();
+
+        Optional<VehicleRegistrationResponse> vehicleOpt = govApiClient.getVehicleByPlate(session.getPlateNo());
+        if (vehicleOpt.isEmpty() || vehicleOpt.get().getOwnerNic() == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Registered owner not found for vehicle " + session.getPlateNo() + ".");
         }
 
-        String plateNo = jwtUtils.extractClaimAsString(jwt, "plateNo");
-        Optional<Vehicle> vehicleOpt = vehicleRepository.findByPlateNo(plateNo);
+        String ownerNic = vehicleOpt.get().getOwnerNic();
 
-        if (vehicleOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found");
-        }
+        notificationRepository.save(buildNotification(
+                ownerNic,
+                "Vehicle Seized — " + session.getPlateNo(),
+                "Your vehicle " + session.getPlateNo() + " has been seized by Roadside Law Enforcement "
+                        + "after being flagged as stolen in the national database. Please visit your nearest "
+                        + "police station with your National Identity Card and vehicle registration documents "
+                        + "to begin the release process.",
+                session.getPlateNo()));
 
-        Vehicle vehicle = vehicleOpt.get();
-        User owner = vehicle.getOwner();
-
-        if (owner == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Registered owner not found for this vehicle");
-        }
-
-        // The owner is the person who needs to act, so the alert goes to them —
-        // not to whoever happened to be driving at the time of the stop.
-        notificationRepository.save(buildSeizureNotification(owner.getNic(), plateNo));
-
-        return ResponseEntity.ok("Seizure recorded for vehicle " + plateNo
+        return ResponseEntity.ok("Seizure recorded for vehicle " + session.getPlateNo()
                 + ". The registered owner has been notified.");
     }
 
-    /**
-     * Builds the inbox alert a vehicle owner receives when their vehicle is
-     * seized at the roadside.
-     */
-    private com.digitallanka.backend.model.Notification buildSeizureNotification(
-            String ownerNic, String plateNo) {
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────────
 
-        com.digitallanka.backend.model.Notification notification =
-                new com.digitallanka.backend.model.Notification();
+    private ResponseEntity<String> privacyLockout() {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("Privacy lockout: this roadside session has expired. Start a new compliance check.");
+    }
 
-        notification.setId(UUID.randomUUID().toString());
-        notification.setRecipientNic(ownerNic);
-        notification.setTitle("Vehicle Seized — " + plateNo);
-        notification.setMessage(
-                "Your vehicle " + plateNo + " has been seized by Roadside Law Enforcement "
-                        + "after being flagged as stolen in the national database. "
-                        + "Please visit your nearest police station with your National Identity Card "
-                        + "and vehicle registration documents to begin the release process.");
-        notification.setType(com.digitallanka.backend.model.Notification.Type.SEIZURE);
-        notification.setReferenceId(plateNo);
-        notification.setRead(false);
-
-        return notification;
+    private boolean isInFuture(String isoDate) {
+        try {
+            return java.time.LocalDate.parse(isoDate).isAfter(java.time.LocalDate.now());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
-     * Builds the inbox alert a driver receives the moment a citation is raised
-     * against them. Kept unread so it shows with the blue "new" dot.
+     * Builds an unread inbox alert.
+     *
+     * <p>Type is {@code GENERAL} deliberately: the {@code notifications.type}
+     * column is a MySQL ENUM of INVITATION / STOLEN_ALERT / GENERAL, and the app
+     * runs with {@code ddl-auto=none}. Adding CITATION and SEIZURE values would
+     * require a schema migration, so GENERAL keeps this working with no DB change.
      */
-    private com.digitallanka.backend.model.Notification buildCitationNotification(
-            String offenderNic, String refNum, String violationType, String plateNo) {
-
-        com.digitallanka.backend.model.Notification notification =
-                new com.digitallanka.backend.model.Notification();
-
+    private Notification buildNotification(String recipientNic, String title, String message, String referenceId) {
+        Notification notification = new Notification();
         notification.setId(UUID.randomUUID().toString());
-        notification.setRecipientNic(offenderNic);
-        notification.setTitle("Penalty Citation Issued — " + refNum);
-        notification.setMessage(
-                "A penalty citation has been issued against you by Roadside Law Enforcement"
-                        + (plateNo != null ? " for vehicle " + plateNo : "")
-                        + ". Violation: " + violationType
-                        + ". Reference: " + refNum
-                        + ". Please settle the fine and upload your payment receipt "
-                        + "under 'My Penalty Citations'.");
-        notification.setType(com.digitallanka.backend.model.Notification.Type.CITATION);
-        notification.setReferenceId(refNum);
+        notification.setRecipientNic(recipientNic);
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setType(Notification.Type.GENERAL);
+        notification.setReferenceId(referenceId);
         notification.setRead(false);
-
         return notification;
+    }
+
+    /** Response for {@code /search}: the stop token plus its lifetime in seconds. */
+    public static class SessionResponse {
+        private final String sessionToken;
+        private final int expiresInSeconds;
+
+        public SessionResponse(String sessionToken, int expiresInSeconds) {
+            this.sessionToken = sessionToken;
+            this.expiresInSeconds = expiresInSeconds;
+        }
+
+        public String getSessionToken()  { return sessionToken; }
+        public int    getExpiresInSeconds() { return expiresInSeconds; }
     }
 }

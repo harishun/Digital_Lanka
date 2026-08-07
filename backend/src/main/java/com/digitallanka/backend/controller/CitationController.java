@@ -1,8 +1,9 @@
 package com.digitallanka.backend.controller;
 
+import com.digitallanka.backend.dto.CitationRequest;
 import com.digitallanka.backend.entity.Citation;
 import com.digitallanka.backend.entity.CitationStatus;
-import com.digitallanka.backend.entity.User;
+import com.digitallanka.backend.model.User;
 import com.digitallanka.backend.repository.CitationRepository;
 import com.digitallanka.backend.repository.UserRepository;
 import com.digitallanka.backend.util.FileUploadUtil;
@@ -14,8 +15,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -28,47 +31,81 @@ public class CitationController {
     @Autowired
     private UserRepository userRepository;
 
+    // Issue a new citation
+    @PostMapping
+    public ResponseEntity<?> issueCitation(@RequestBody CitationRequest request) {
+        try {
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String officerNic = userDetails.getUsername();
+
+            Optional<User> offenderOpt = userRepository.findByNic(request.getDriverNic());
+            if (offenderOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Offender not found in application database");
+            }
+
+            Citation citation = Citation.builder()
+                    .referenceNumber("CIT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                    .offender(offenderOpt.get())
+                    .plateNumber(request.getPlateNumber())
+                    .violationType(request.getViolationType())
+                    .gpsCoordinates(request.getGpsCoordinates())
+                    .fineAmount(request.getFineAmount())
+                    .officerNic(officerNic)
+                    .timestamp(LocalDateTime.now())
+                    .status(CitationStatus.PENDING_PAYMENT)
+                    .build();
+
+            citationRepository.save(citation);
+            return ResponseEntity.ok(citation);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not issue citation");
+        }
+    }
+
     // Get citations for the logged-in citizen
     @GetMapping("/my")
     public ResponseEntity<?> getMyCitations() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<User> userOpt = userRepository.findByNic(userDetails.getUsername());
+        try {
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Optional<User> userOpt = userRepository.findByNic(userDetails.getUsername());
 
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            List<Citation> myCitations = citationRepository.findByOffender(userOpt.get());
+            return ResponseEntity.ok(myCitations);
+        } catch (Exception e) {
+            return ResponseEntity.ok(List.of());
         }
-
-        List<Citation> myCitations = citationRepository.findByOffender(userOpt.get());
-        return ResponseEntity.ok(myCitations);
     }
 
     // Citizen uploads receipt -> transitions to VERIFYING
     @PostMapping("/{id}/pay")
     public ResponseEntity<?> payCitation(@PathVariable Long id, @RequestParam("receipt") MultipartFile receipt) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<User> userOpt = userRepository.findByNic(userDetails.getUsername());
-
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-
-        Optional<Citation> citationOpt = citationRepository.findById(id);
-        if (citationOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Citation not found");
-        }
-
-        Citation citation = citationOpt.get();
-
-        // Check if this citation actually belongs to the user
-        if (!citation.getOffender().getNic().equals(userOpt.get().getNic())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
-        }
-
-        if (citation.getStatus() != CitationStatus.PENDING_PAYMENT) {
-            return ResponseEntity.badRequest().body("Citation is not pending payment");
-        }
-
         try {
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Optional<User> userOpt = userRepository.findByNic(userDetails.getUsername());
+
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            Optional<Citation> citationOpt = citationRepository.findById(id);
+            if (citationOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Citation not found");
+            }
+
+            Citation citation = citationOpt.get();
+
+            if (citation.getOffender() != null && !citation.getOffender().getNic().equals(userOpt.get().getNic())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
+            }
+
+            if (citation.getStatus() != CitationStatus.PENDING_PAYMENT) {
+                return ResponseEntity.badRequest().body("Citation is not pending payment");
+            }
+
             if (receipt != null && !receipt.isEmpty()) {
                 FileUploadUtil.saveFile("uploads/receipts", receipt);
                 citation.setStatus(CitationStatus.VERIFYING);

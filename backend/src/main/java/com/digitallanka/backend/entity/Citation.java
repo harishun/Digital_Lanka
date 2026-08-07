@@ -1,5 +1,6 @@
 package com.digitallanka.backend.entity;
 
+import com.digitallanka.backend.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -19,8 +20,8 @@ public class Citation {
     @Column(name = "reference_number", nullable = false, unique = true)
     private String referenceNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "offender_nic", referencedColumnName = "nic")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "nic", referencedColumnName = "nic")
     private User offender;
 
     @Column(name = "violation_type", nullable = false)
@@ -28,6 +29,15 @@ public class Citation {
 
     @Column(name = "gps_coordinates")
     private String gpsCoordinates;
+
+    @Column(name = "plate_number")
+    private String plateNumber;
+
+    @Column(name = "fine_amount")
+    private String fineAmount;
+
+    @Column(name = "officer_nic")
+    private String officerNic;
 
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;

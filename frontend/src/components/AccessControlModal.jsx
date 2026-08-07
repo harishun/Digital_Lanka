@@ -51,7 +51,7 @@ export default function AccessControlModal({
     <div className="modal-overlay">
       <div className="glass-card modal-card animate-fade-in" style={{ position: 'relative', maxWidth: '640px', padding: '32px', background: 'var(--c-card-bg, #ffffff)', border: '1px solid var(--c-card-border, #cbd5e1)', borderRadius: '16px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.4)', transition: 'background-color 0.3s ease' }}>
         
-        {/* Sticky Red Top-Right Close Button */}
+        {/* Sticky Red X Close Button */}
         <button 
           onClick={onClose} 
           style={{ 
@@ -59,23 +59,21 @@ export default function AccessControlModal({
             top: '0px', 
             float: 'right', 
             zIndex: 20,
-            background: '#dc2626', 
-            color: '#ffffff', 
+            background: 'none', 
+            color: '#dc2626', 
             border: 'none', 
-            borderRadius: '50%', 
-            width: '34px', 
-            height: '34px', 
-            minWidth: '34px',
+            padding: '0',
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center', 
             cursor: 'pointer', 
-            boxShadow: '0 4px 12px rgba(220, 38, 38, 0.45)',
-            transition: 'transform 0.15s ease' 
+            transition: 'transform 0.15s ease, opacity 0.15s ease' 
           }}
           title="Close Access Control Modal"
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.opacity = '0.8'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '1'; }}
         >
-          <span className="material-icons" style={{ fontSize: '20px', fontWeight: 'bold' }}>close</span>
+          <span className="material-icons" style={{ fontSize: '28px', fontWeight: 'bold' }}>close</span>
         </button>
 
         {/* Header */}
@@ -207,7 +205,7 @@ export default function AccessControlModal({
                       </div>
                     </div>
 
-                    {auth.status === 'GRANTED' && (
+                    {auth.status === 'GRANTED' && auth.authorizedNic !== currentVehicle.ownerNic && (
                       <button 
                         onClick={() => handleRevokeAccess(auth.id)} 
                         className="btn-secondary" 
@@ -265,24 +263,7 @@ export default function AccessControlModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--c-card-border, #edf2f7)', paddingTop: '20px', marginTop: '24px' }}>
-          <button 
-            onClick={onClose} 
-            className="btn-secondary" 
-            style={{ 
-              padding: '10px 24px', 
-              fontWeight: '800', 
-              background: '#dc2626', 
-              color: '#ffffff', 
-              border: 'none', 
-              borderRadius: '8px', 
-              boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)' 
-            }}
-          >
-            CLOSE
-          </button>
-        </div>
+
 
       </div>
     </div>

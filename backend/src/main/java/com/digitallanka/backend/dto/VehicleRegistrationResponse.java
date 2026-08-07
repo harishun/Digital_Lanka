@@ -18,7 +18,11 @@ public class VehicleRegistrationResponse {
     private String id;
 
     private String plateNumber;
+    private String customName;
+    private String make;
     private String model;
+    private String color;
+    private Integer makeYear;
     private String vehicleClass;
     private String ownerNic;
     private String chassisNo;

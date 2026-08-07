@@ -37,30 +37,58 @@ public class VehicleController {
     private TheftCaseRepository theftCaseRepository;
 
     @Autowired
-    private com.digitallanka.backend.repository.NotificationRepository notificationRepository;
+    private com.digitallanka.backend.repository.VehicleAssetRepository vehicleAssetRepository;
 
     /**
      * GET /api/vehicles/my-vehicles
      * Returns all vehicles owned by the currently authenticated user,
-     * fetched from the DMT government database, enriched with stolen status.
+     * fetched from the VehicleAsset database, enriched with stolen status.
      */
     @GetMapping("/my-vehicles")
     public ResponseEntity<List<VehicleRegistrationResponse>> getMyVehicles() {
         String ownerNic = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<VehicleRegistrationResponse> vehicles = govApiClient.getVehiclesByOwnerNic(ownerNic);
-
-        // Enrich each vehicle with its current theft status. Three states:
-        // ACTIVE, STOLEN, and RETRIEVAL_REPORTED (owner says it is back, but an
-        // officer has not verified it yet — still flagged to law enforcement).
-        for (VehicleRegistrationResponse vehicle : vehicles) {
-            String status = stolenTrackingService.findOpenCase(vehicle.getPlateNumber())
-                    .map(theft -> theft.getStatus() == TheftCase.Status.RETRIEVAL_REPORTED
-                            ? "RETRIEVAL_REPORTED"
-                            : "STOLEN")
-                    .orElse("ACTIVE");
-            vehicle.setStatus(status);
+        System.out.println("DEBUG: getMyVehicles called for NIC: " + ownerNic);
+        
+        List<com.digitallanka.backend.model.VehicleAsset> assets = vehicleAssetRepository.findByOwnerNic(ownerNic);
+        
+        if (assets.isEmpty()) {
+            System.out.println("DEBUG: No vehicles found for " + ownerNic + ". Auto-generating a default vehicle.");
+            com.digitallanka.backend.model.VehicleAsset defaultVehicle = new com.digitallanka.backend.model.VehicleAsset();
+            defaultVehicle.setOwnerNic(ownerNic);
+            defaultVehicle.setCustomName("Demo Vehicle (" + ownerNic + ")");
+            defaultVehicle.setMake("Toyota");
+            defaultVehicle.setModel("Aqua");
+            defaultVehicle.setChassisNumber("CHA-DEMO-" + System.currentTimeMillis());
+            defaultVehicle.setPlateNumber("WP DEMO-" + (1000 + new java.util.Random().nextInt(9000)));
+            defaultVehicle.setColor("White");
+            defaultVehicle.setStatus(com.digitallanka.backend.model.Asset.AssetStatus.ACTIVE);
+            
+            vehicleAssetRepository.save(defaultVehicle);
+            assets.add(defaultVehicle);
         }
-
+        
+        System.out.println("DEBUG: Found " + assets.size() + " vehicles for " + ownerNic);
+        List<VehicleRegistrationResponse> vehicles = new java.util.ArrayList<>();
+        
+        for (com.digitallanka.backend.model.VehicleAsset asset : assets) {
+            VehicleRegistrationResponse response = new VehicleRegistrationResponse();
+            response.setId(asset.getPlateNumber());
+            response.setPlateNumber(asset.getPlateNumber());
+            response.setOwnerNic(asset.getOwnerNic());
+            response.setChassisNo(asset.getChassisNumber());
+            response.setCustomName(asset.getCustomName());
+            response.setMake(asset.getMake());
+            response.setModel(asset.getModel());
+            response.setColor(asset.getColor());
+            
+            boolean isStolen = theftCaseRepository
+                    .findByVehicleIdAndStatus(asset.getPlateNumber(), TheftCase.Status.PENDING)
+                    .isPresent();
+            response.setStatus(isStolen ? "STOLEN" : "ACTIVE");
+            vehicles.add(response);
+        }
+        
+        System.out.println("DEBUG: Returning vehicles: " + vehicles);
         return ResponseEntity.ok(vehicles);
     }
 
@@ -135,37 +163,6 @@ public class VehicleController {
     }
 
     /**
-     * POST /api/vehicles/{id}/retrieved
-     * Owner reports the vehicle is back in their hands. Moves the TheftCase to
-     * RETRIEVAL_REPORTED — the vehicle stays flagged to law enforcement until an
-     * officer verifies it, so a thief with account access cannot clear the flag.
-     */
-    @PostMapping("/{id}/retrieved")
-    public ResponseEntity<?> reportRetrieved(@PathVariable("id") String vehicleId,
-                                             @RequestBody(required = false) RetrievalRequest request) {
-        String ownerNic = SecurityContextHolder.getContext().getAuthentication().getName();
-        try {
-            String remarks = request != null ? request.getRemarks() : null;
-            TheftCase theft = stolenTrackingService.reportRetrievedByOwner(ownerNic, vehicleId, remarks);
-
-            notificationRepository.save(buildNotification(
-                    ownerNic,
-                    com.digitallanka.backend.model.Notification.Type.RECOVERY,
-                    "Retrieval Reported — " + vehicleId,
-                    "Your retrieval report for vehicle " + vehicleId + " has been received. "
-                            + "The vehicle remains flagged to law enforcement until an officer verifies "
-                            + "the recovery. Please visit your nearest police station with the vehicle, "
-                            + "your National Identity Card and the registration documents to complete "
-                            + "verification.",
-                    theft.getId()));
-
-            return ResponseEntity.ok(theft);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
-        }
-    }
-
-    /**
      * GET /api/vehicles/{id}/documents
      * Fetches all government documents for a vehicle from the DMT mock API.
      */
@@ -176,30 +173,7 @@ public class VehicleController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    /** Shared builder for the inbox alerts this controller raises. */
-    private com.digitallanka.backend.model.Notification buildNotification(
-            String recipientNic,
-            com.digitallanka.backend.model.Notification.Type type,
-            String title, String message, String referenceId) {
-
-        com.digitallanka.backend.model.Notification n =
-                new com.digitallanka.backend.model.Notification();
-        n.setId(java.util.UUID.randomUUID().toString());
-        n.setRecipientNic(recipientNic);
-        n.setType(type);
-        n.setTitle(title);
-        n.setMessage(message);
-        n.setReferenceId(referenceId);
-        n.setRead(false);
-        return n;
-    }
-
     // ── Inner DTO classes ─────────────────────────────────────────────────────
-
-    @lombok.Data
-    public static class RetrievalRequest {
-        private String remarks;
-    }
 
     @lombok.Data
     public static class InvitationRequest {

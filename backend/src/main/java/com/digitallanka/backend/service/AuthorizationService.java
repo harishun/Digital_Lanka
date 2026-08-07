@@ -222,10 +222,10 @@ public class AuthorizationService {
             return;
         }
 
-        // 2. Fetch vehicles registered under driver's NIC from vehicle_registrations table (via DMT API)
+        // 2. Fetch vehicles registered under driver's NIC from DMT API
         List<VehicleRegistrationResponse> ownedVehicles = govApiClient.getVehiclesByOwnerNic(driverNic);
 
-        // 3. For each owned vehicle matching driver's licence class, check and insert into vehicle_authorizations
+        // 3. For each owned vehicle matching driver's licence class, check and insert self-authorization
         for (VehicleRegistrationResponse vehicle : ownedVehicles) {
             if (vehicle.getVehicleClass() != null && validClasses.contains(vehicle.getVehicleClass().toUpperCase())) {
                 String vehicleId = vehicle.getPlateNumber();
@@ -250,3 +250,4 @@ public class AuthorizationService {
         }
     }
 }
+

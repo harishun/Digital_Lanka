@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 
 /**
- * CitizenProfileCard — National Identity Card component adhering to application brand colors:
- * - Primary Brand Color: var(--c-primary, #002366)
- * - Front Top Header: Features Sri Lankan National Emblem Crest & Republic Header.
- * - Dynamic Multiple Vehicle Classes Handling: Auto-adjusting flex-wrap and scroll containers
- *   on both FRONT (badges) and BACK (metadata table) so that any number of vehicle classes (1 to 10+)
- *   are handled cleanly without breaking card height alignment (fixed 350px).
- * - 3D Hardware-Accelerated Flip between FRONT and BACK.
+ * CitizenProfileCard — Standalone Smart Citizen ID & Driving License Card.
+ * Front side: Large, prominent text filling space cleanly.
+ * Back side: Compact classes and dates to accommodate future vehicle classes easily.
  */
 export default function CitizenProfileCard({ currentUser }) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -15,11 +11,9 @@ export default function CitizenProfileCard({ currentUser }) {
   if (!currentUser) return null;
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return '01 / 01 / 1990';
+    if (!dateStr) return '—';
     const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      return `${parts[2]} / ${parts[1]} / ${parts[0]}`;
-    }
+    if (parts.length === 3) return `${parts[2]} / ${parts[1]} / ${parts[0]}`;
     return dateStr;
   };
 
@@ -28,7 +22,14 @@ export default function CitizenProfileCard({ currentUser }) {
   return (
     <div 
       className="id-card-wrapper animate-fade-in"
-      style={{ perspective: '1000px', cursor: 'pointer', width: '100%', marginBottom: '24px' }} 
+      style={{ 
+        perspective: '1200px', 
+        cursor: 'pointer', 
+        width: '100%',
+        maxWidth: '540px',
+        margin: '0 auto 24px auto',
+        aspectRatio: '85.6 / 54'
+      }} 
       onClick={() => setIsFlipped(!isFlipped)}
       title="Click card to flip between Front and Back"
     >
@@ -36,290 +37,259 @@ export default function CitizenProfileCard({ currentUser }) {
         style={{
           position: 'relative',
           width: '100%',
-          height: '340px',
-          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+          height: '100%',
+          transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
           transformStyle: 'preserve-3d',
           transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
         }}
       >
-        {/* ── FRONT SIDE ─────────────────────────────────────────────────── */}
+        {/* ── FRONT SIDE ── */}
         <div 
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
             boxSizing: 'border-box',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            borderRadius: '14px',
-            background: '#ffffff',
-            border: '1px solid #cbd5e1',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+            backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+            borderRadius: '16px',
+            background: 'linear-gradient(145deg, var(--c-card-bg, #ffffff) 0%, var(--c-card-sub-bg, #f8fafc) 100%)',
+            border: '1.5px solid var(--c-card-border, #cbd5e1)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.12), 0 2px 6px rgba(0,35,102,0.06)',
             overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            justify: 'space-between'
+            display: 'flex', flexDirection: 'column',
+            transition: 'background-color 0.3s ease, border-color 0.3s ease'
           }}
         >
-          {/* Top Brand Header Bar with Sri Lankan National Emblem */}
-          <div style={{ background: 'var(--c-primary, #002366)', color: '#ffffff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '62px', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#fbbf24', border: '1.5px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} title="Democratic Socialist Republic of Sri Lanka Emblem">
-                🇱🇰
-              </div>
+          {/* Card Header Band */}
+          <div style={{
+            background: 'linear-gradient(135deg, var(--c-primary, #002366) 0%, #001845 100%)',
+            color: '#ffffff',
+            padding: '12px 20px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            boxSizing: 'border-box',
+            borderBottom: '3px solid #fbbf24'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                border: '2px solid #ffffff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '20px', boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+              }}>🇱🇰</div>
               <div>
-                <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#93c5fd', display: 'block', marginBottom: '3px', paddingTop: '2px' }}>
-                  REPUBLIC OF SRI LANKA • NATIONAL IDENTITY CARD
+                <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#93c5fd', display: 'block' }}>
+                  DEMOCRATIC SOCIALIST REPUBLIC OF SRI LANKA
                 </span>
-                <h2 style={{ margin: 0, fontSize: '13.5px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>
-                  SRI LANKA SMART IDENTITY & DRIVING LICENSE
+                <h2 style={{ margin: '1px 0 0 0', fontSize: '16px', fontWeight: '900', color: '#ffffff', letterSpacing: '0.4px' }}>
+                  NATIONAL SMART IDENTITY & DRIVING LICENSE
                 </h2>
               </div>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.1)', padding: '3px 8px', borderRadius: '6px' }}>
-              <span className="material-icons" style={{ fontSize: '15px', color: '#4ade80' }}>verified</span>
-              <span style={{ fontSize: '10.5px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>
-                ACTIVE
-              </span>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(74, 222, 128, 0.22)',
+              border: '1.5px solid rgba(74, 222, 128, 0.7)',
+              padding: '5px 14px', borderRadius: '20px'
+            }}>
+              <span className="material-icons" style={{ fontSize: '16px', color: '#4ade80' }}>verified</span>
+              <span style={{ fontSize: '13px', fontWeight: '900', color: '#ffffff', letterSpacing: '0.5px' }}>ACTIVE</span>
             </div>
           </div>
 
-          {/* Card Front Content Area (Evenly Distributed) */}
+          {/* Card Body */}
           <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '18px' }}>
-              
-              {/* Left Column: Photo & NIC Number */}
+            <div style={{ display: 'grid', gridTemplateColumns: '125px 1fr', gap: '20px', flex: 1, alignItems: 'center' }}>
+              {/* Photo & NIC */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ position: 'relative', width: '105px', height: '115px', borderRadius: '10px', overflow: 'hidden', border: '1px solid #cbd5e1', background: '#e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(180deg, #3b82f6 0%, var(--c-primary, #002366) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontSize: '40px', fontWeight: '800' }}>
+                <div style={{
+                  position: 'relative', width: '110px', height: '124px', borderRadius: '14px',
+                  overflow: 'hidden', border: '2px solid var(--c-card-border, #cbd5e1)',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.15)'
+                }}>
+                  <div style={{
+                    width: '100%', height: '100%',
+                    background: 'linear-gradient(160deg, #3b82f6 0%, var(--c-primary, #002366) 70%, #001845 100%)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#ffffff', fontSize: '48px', fontWeight: '800'
+                  }}>
                     {currentUser.fullName ? currentUser.fullName.charAt(0) : 'U'}
                   </div>
-                  <div style={{ position: 'absolute', bottom: '6px', right: '6px', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--c-primary, #002366)', border: '2px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="material-icons" style={{ fontSize: '12px', color: '#ffffff' }}>check</span>
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                    background: 'linear-gradient(to top, rgba(0,35,102,0.95), rgba(0,35,102,0.6))',
+                    color: '#ffffff', fontSize: '11px', fontWeight: '800', textAlign: 'center',
+                    padding: '4px 0', textTransform: 'uppercase', letterSpacing: '0.6px'
+                  }}>
+                    {currentUser.role || 'CITIZEN'}
                   </div>
                 </div>
-
-                <div style={{ textAlign: 'center', marginTop: '6px' }}>
-                  <span style={{ fontSize: '8.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
-                    NIC NUMBER
-                  </span>
-                  <span style={{ fontSize: '13.5px', fontWeight: '800', color: '#0f172a', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+                <div style={{ marginTop: '10px', textAlign: 'center', width: '100%' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--c-card-subtext, #64748b)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.6px' }}>NIC NUMBER</span>
+                  <p style={{
+                    margin: '3px 0 0 0', fontSize: '14.5px', fontWeight: '900',
+                    color: 'var(--c-primary, #002366)',
+                    letterSpacing: '0.6px', fontFamily: "'Courier New', monospace",
+                    background: 'var(--c-card-sub-bg, #f1f5f9)', padding: '4px 8px', borderRadius: '6px',
+                    border: '1px solid var(--c-card-border, #cbd5e1)'
+                  }}>
                     {currentUser.nic}
-                  </span>
+                  </p>
                 </div>
               </div>
 
-              {/* Right Column: User Details */}
-              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
-                
-                {/* Full Name */}
+              {/* Citizen Details */}
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', padding: '4px 0' }}>
                 <div>
-                  <span style={{ fontSize: '8.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
-                    FULL NAME
-                  </span>
-                  <h3 style={{ margin: '1px 0 0 0', fontSize: '16.5px', fontWeight: '800', color: '#0f172a', letterSpacing: '0.2px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--c-card-subtext, #64748b)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.6px' }}>FULL NAME</span>
+                  <h3 style={{ margin: '3px 0 0 0', fontSize: '19px', fontWeight: '900', color: 'var(--c-card-text, #0f172a)', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: '1.2' }}>
                     {currentUser.fullName}
                   </h3>
                 </div>
 
-                {/* Date of Birth & Blood Group/Organ Donor (Side by Side) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '8px', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ fontSize: '8.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
-                      DATE OF BIRTH
-                    </span>
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', fontFamily: 'monospace', display: 'block', marginTop: '1px' }}>
-                      {formatDate(currentUser.dateOfBirth)}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <span style={{ fontSize: '13px' }}>🩸</span>
-                      <div>
-                        <span style={{ fontSize: '7px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', display: 'block' }}>BLOOD</span>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#0f172a' }}>{currentUser.bloodGroup || 'O+'}</span>
-                      </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 14px' }}>
+                  {[
+                    { label: 'DATE OF BIRTH', value: formatDate(currentUser.dateOfBirth), color: 'var(--c-card-text, #0f172a)' },
+                    { label: 'GENDER', value: currentUser.gender || 'Male', color: 'var(--c-card-text, #0f172a)' },
+                    { label: 'BLOOD GROUP', value: currentUser.bloodGroup || 'B+', color: '#dc2626' },
+                    { label: 'ORGAN DONOR', value: currentUser.donor ? 'YES ✓' : 'NO', color: currentUser.donor ? '#16a34a' : 'var(--c-card-text, #0f172a)' }
+                  ].map((f, i) => (
+                    <div key={i}>
+                      <span style={{ fontSize: '10.5px', color: 'var(--c-card-subtext, #64748b)', fontWeight: '800', textTransform: 'uppercase' }}>{f.label}</span>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: '800', color: f.color }}>{f.value}</p>
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <span style={{ fontSize: '13px' }}>💚</span>
-                      <div>
-                        <span style={{ fontSize: '7px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', display: 'block' }}>DONOR</span>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#0f172a' }}>{currentUser.donor !== false ? 'YES' : 'NO'}</span>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Driving Eligibility: Handles 1 to 10+ vehicle classes with auto-wrapping & max height scroll */}
-                <div style={{ background: '#f8fafc', padding: '7px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '8.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      DRIVING ELIGIBILITY ({vehicleClasses.length} CLASSES)
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#16a34a', fontWeight: '800', fontSize: '11.5px' }}>
-                      <span>VALID</span>
-                      <span className="material-icons" style={{ fontSize: '14px' }}>check_circle_outline</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', maxHeight: '58px', overflowY: 'auto', paddingRight: '2px' }}>
-                    {vehicleClasses.map((vc) => (
-                      <span key={vc.classCode} style={{ background: 'var(--c-primary, #002366)', color: '#ffffff', fontSize: '9.5px', fontWeight: '800', padding: '2px 7px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        CLASS {vc.classCode}
-                      </span>
-                    ))}
-                  </div>
+                <div>
+                  <span style={{ fontSize: '10.5px', color: 'var(--c-card-subtext, #64748b)', fontWeight: '800', textTransform: 'uppercase' }}>PERMANENT ADDRESS</span>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '13.5px', fontWeight: '700', color: 'var(--c-card-text, #0f172a)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {currentUser.address || 'No. 45, Flower Road, Colombo 07'}
+                  </p>
                 </div>
-
               </div>
             </div>
 
-            {/* Bottom Row: Digital Signature & Issued By */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '6px' }}>
-              <div>
-                <span style={{ fontSize: '8px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
-                  DIGITAL SIGNATURE
-                </span>
-                <div style={{ fontFamily: '"Brush Script MT", cursive, sans-serif', fontSize: '18px', color: '#1e293b', padding: '2px 8px', borderRadius: '4px', border: '1px dashed #cbd5e1', marginTop: '2px', background: '#fafafa', display: 'inline-block' }}>
-                  {currentUser.fullName || 'Johnathan Doe'}
-                </div>
-              </div>
-
-              <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '8px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', display: 'block' }}>ISSUED BY</span>
-                <span style={{ fontSize: '9.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>CENTRAL IDENTITY AUTHORITY</span>
-              </div>
+            {/* Footer */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid var(--c-card-border, #e2e8f0)', paddingTop: '10px', marginTop: '10px' }}>
+              <span style={{ fontSize: '11.5px', color: 'var(--c-card-subtext, #64748b)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                ISSUE DATE: {currentUser.dateOfIssue || '10 / 04 / 1995'}
+              </span>
+              <span style={{ fontSize: '13px', color: 'var(--c-primary, #002366)', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span className="material-icons" style={{ fontSize: '17px' }}>flip_to_back</span>
+                FLIP CARD →
+              </span>
             </div>
-          </div>
-
-          <div style={{ background: '#f8fafc', padding: '4px', textAlign: 'center', fontSize: '9px', color: '#64748b', borderTop: '1px solid #edf2f7' }}>
-            🔄 Click Card to Flip to Reverso / Card Back
           </div>
         </div>
 
-        {/* ── BACK SIDE ──────────────────────────────────────────────────── */}
+        {/* ── BACK SIDE — Compact Classes & Dates to fit future classes ── */}
         <div 
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
             boxSizing: 'border-box',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
+            backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
-            borderRadius: '14px',
-            background: '#ffffff',
-            border: '1px solid #cbd5e1',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+            borderRadius: '16px',
+            background: 'linear-gradient(145deg, var(--c-card-bg, #ffffff) 0%, var(--c-card-sub-bg, #f8fafc) 100%)',
+            border: '1.5px solid var(--c-card-border, #cbd5e1)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.12), 0 2px 6px rgba(0,35,102,0.06)',
             overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            justify: 'space-between'
+            display: 'flex', flexDirection: 'column',
+            transition: 'background-color 0.3s ease, border-color 0.3s ease'
           }}
         >
-          {/* Top Brand Header Bar */}
-          <div style={{ background: 'var(--c-primary, #002366)', color: '#ffffff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '62px', boxSizing: 'border-box' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#fbbf24', border: '1.5px solid #ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} title="Democratic Socialist Republic of Sri Lanka Emblem">
-                🇱🇰
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#ffffff' }}>
-                CARD BACK / REVERSO
+          {/* Back Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, var(--c-primary, #002366) 0%, #001845 100%)',
+            color: '#ffffff', padding: '10px 16px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            boxSizing: 'border-box',
+            borderBottom: '2.5px solid #fbbf24'
+          }}>
+            <div>
+              <span style={{ fontSize: '9.5px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#93c5fd', display: 'block' }}>
+                DEPARTMENT OF MOTOR TRAFFIC • SRI LANKA
               </span>
+              <h3 style={{ margin: '1px 0 0 0', fontSize: '13.5px', fontWeight: '900', color: '#ffffff' }}>
+                AUTHORIZED VEHICLE DRIVING CLASSES
+              </h3>
             </div>
-
-            <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.8px', color: '#93c5fd' }}>
-              NATIONAL IDENTITY SYSTEM
+            <span style={{
+              fontSize: '15px', fontWeight: '900', color: '#ffffff', fontFamily: "'Courier New', monospace",
+              background: 'rgba(255,255,255,0.15)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.25)'
+            }}>
+              {currentUser.licenseNumber || 'DL-1972045-Y'}
             </span>
           </div>
 
-          {/* Card Back Main Info Container */}
-          <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            
-            {/* Address & Place of Birth Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '16px' }}>
-              <div>
-                <span style={{ fontSize: '9px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
-                  PERMANENT ADDRESS
-                </span>
-                <p style={{ margin: '2px 0 0 0', fontSize: '12px', fontWeight: '700', color: '#0f172a', lineHeight: '1.3' }}>
-                  {currentUser.address || '123 Heritage Lane, Capital City, Metro Province'}
-                </p>
+          {/* Classes Table — Compact row padding & crisp font size */}
+          <div style={{ flex: 1, padding: '10px 14px', overflowY: 'auto' }}>
+            {vehicleClasses.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--c-card-subtext, #64748b)' }}>
+                <span className="material-icons" style={{ fontSize: '32px', opacity: 0.4 }}>no_crash</span>
+                <p style={{ margin: '6px 0 0 0', fontSize: '13px', fontWeight: '700', color: 'var(--c-card-subtext, #475569)' }}>No driving classes authorized.</p>
               </div>
-
-              <div>
-                <span style={{ fontSize: '9px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>
-                  PLACE OF BIRTH
-                </span>
-                <p style={{ margin: '2px 0 0 0', fontSize: '12px', fontWeight: '700', color: '#0f172a' }}>
-                  {currentUser.placeOfBirth || 'Capital City General Hospital'}
-                </p>
-              </div>
-            </div>
-
-            {/* Driving License Metadata Container (Auto-scrolls if 4+ vehicle classes exist) */}
-            <div style={{ background: 'rgba(0, 35, 102, 0.04)', border: '1px solid rgba(0, 35, 102, 0.12)', borderRadius: '10px', padding: '12px 14px', marginTop: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span className="material-icons" style={{ fontSize: '16px', color: 'var(--c-primary, #002366)' }}>directions_car</span>
-                  <h4 style={{ margin: 0, fontSize: '11px', fontWeight: '800', color: 'var(--c-primary, #002366)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    DRIVING LICENSE METADATA
-                  </h4>
+            ) : (
+              <>
+                {/* Table Header */}
+                <div style={{
+                  display: 'grid', gridTemplateColumns: '55px 1fr 85px 85px',
+                  gap: '6px', padding: '4px 6px',
+                  borderBottom: '2px solid var(--c-primary, #002366)',
+                  marginBottom: '4px'
+                }}>
+                  {['CLASS', 'DESCRIPTION', 'ISSUED', 'EXPIRY'].map(h => (
+                    <span key={h} style={{ fontSize: '9.5px', fontWeight: '900', color: 'var(--c-primary, #002366)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</span>
+                  ))}
                 </div>
-                <span style={{ fontSize: '9.5px', fontWeight: '800', color: 'var(--c-primary, #002366)', background: 'rgba(0,35,102,0.08)', padding: '1px 6px', borderRadius: '4px' }}>
-                  {vehicleClasses.length} CLASSES AUTHORIZED
-                </span>
-              </div>
 
-              {/* Table Header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: '8px', fontSize: '9px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #cbd5e1', paddingBottom: '4px', marginBottom: '6px' }}>
-                <span>VEHICLE CLASS</span>
-                <span>ISSUED DATE</span>
-                <span>EXPIRY DATE</span>
-              </div>
-
-              {/* Table Rows (Max height 135px scrollable for multiple vehicle classes) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '135px', overflowY: 'auto', paddingRight: '2px' }}>
-                {vehicleClasses.map((vc) => (
-                  <div key={vc.classCode} style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: '8px', alignItems: 'center', fontSize: '11px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ background: 'var(--c-primary, #002366)', color: '#ffffff', fontSize: '9px', fontWeight: '800', padding: '1px 6px', borderRadius: '3px', minWidth: '18px', textAlign: 'center' }}>
-                        {vc.classCode}
-                      </span>
-                      <span style={{ fontWeight: '700', color: '#1e293b' }}>
-                        {vc.description || (vc.classCode === 'A' ? 'Motorcycle' : vc.classCode === 'B' ? 'Passenger' : 'Vehicle')}
-                      </span>
-                    </div>
-
-                    <span style={{ fontFamily: 'monospace', fontWeight: '700', color: '#334155' }}>
-                      {formatDate(vc.issuedDate)}
+                {/* Rows */}
+                {vehicleClasses.map((cls, idx) => (
+                  <div 
+                    key={cls.classCode || idx} 
+                    style={{
+                      display: 'grid', gridTemplateColumns: '55px 1fr 85px 85px',
+                      gap: '6px', padding: '4px 6px',
+                      background: idx % 2 === 0 ? 'var(--c-card-sub-bg, #f8fafc)' : 'transparent',
+                      borderRadius: '4px', alignItems: 'center',
+                      marginBottom: '2px'
+                    }}
+                  >
+                    <span style={{
+                      fontSize: '11px', fontWeight: '900', color: '#ffffff',
+                      background: 'var(--c-primary, #002366)',
+                      padding: '2px 6px', borderRadius: '4px', textAlign: 'center',
+                      display: 'inline-block'
+                    }}>
+                      {cls.classCode}
                     </span>
-
-                    <span style={{ fontFamily: 'monospace', fontWeight: '700', color: '#334155' }}>
-                      {formatDate(vc.expiryDate)}
+                    <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--c-card-text, #334155)' }}>
+                      {cls.description}
+                    </span>
+                    <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--c-card-text, #0f172a)', fontFamily: "'Courier New', monospace" }}>
+                      {cls.issuedDate || cls.issued || '15/03/2015'}
+                    </span>
+                    <span style={{
+                      fontSize: '10.5px', fontWeight: '700', fontFamily: "'Courier New', monospace",
+                      color: cls.expired ? '#dc2626' : '#16a34a'
+                    }}>
+                      {cls.expiryDate || cls.expiry || '14/03/2035'}
                     </span>
                   </div>
                 ))}
-              </div>
-            </div>
+              </>
+            )}
+          </div>
 
-            {/* Bottom Row Note */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #edf2f7', paddingTop: '6px', marginTop: '6px' }}>
-              <span style={{ fontSize: '8.5px', color: '#64748b', fontStyle: 'italic' }}>
-                OFFICIAL REPUBLIC OF SRI LANKA IDENTITY CREDENTIAL
-              </span>
-              <span style={{ fontSize: '8.5px', fontWeight: '800', color: 'var(--c-primary, #002366)' }}>
-                CENTRAL AUTHORITY
-              </span>
-            </div>
-
+          {/* Back Footer */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '8px 16px', borderTop: '1.5px solid var(--c-card-border, #e2e8f0)'
+          }}>
+            <span style={{ fontSize: '9.5px', color: 'var(--c-card-subtext, #64748b)', fontWeight: '800' }}>DIGITAL LANKA SMART CITIZEN ECOSYSTEM</span>
+            <span style={{ fontSize: '11.5px', color: 'var(--c-primary, #002366)', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              ← FLIP TO FRONT
+              <span className="material-icons" style={{ fontSize: '15px' }}>flip_to_front</span>
+            </span>
           </div>
         </div>
 

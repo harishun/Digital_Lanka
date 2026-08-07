@@ -46,9 +46,9 @@ public class AuthorizationService {
         }
 
         // 2. Prevent duplicate active or pending authorizations
-        boolean alreadyPending = authorizationRepository.findByVehicleIdAndAuthorizedNicAndStatus(
+        boolean alreadyPending = authorizationRepository.findFirstByVehicleIdAndAuthorizedNicAndStatus(
                 vehicleId, targetNic, VehicleAuthorization.Status.PENDING).isPresent();
-        boolean alreadyGranted = authorizationRepository.findByVehicleIdAndAuthorizedNicAndStatus(
+        boolean alreadyGranted = authorizationRepository.findFirstByVehicleIdAndAuthorizedNicAndStatus(
                 vehicleId, targetNic, VehicleAuthorization.Status.GRANTED).isPresent();
         if (alreadyPending || alreadyGranted) {
             throw new IllegalStateException("This driver already has active or pending access to this vehicle.");
@@ -231,7 +231,7 @@ public class AuthorizationService {
                 String vehicleId = vehicle.getPlateNumber();
 
                 boolean exists = authorizationRepository
-                        .findByVehicleIdAndAuthorizedNicAndStatus(vehicleId, driverNic, VehicleAuthorization.Status.GRANTED)
+                        .findFirstByVehicleIdAndAuthorizedNicAndStatus(vehicleId, driverNic, VehicleAuthorization.Status.GRANTED)
                         .isPresent();
 
                 if (!exists) {

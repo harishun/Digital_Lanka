@@ -94,7 +94,7 @@ public class OfficerController {
 
         // 5. Check for active driver authorization
         Optional<VehicleAuthorization> activeAuthOpt = authorizationRepository
-                .findByVehicleIdAndAuthorizedNicAndStatus(
+                .findFirstByVehicleIdAndAuthorizedNicAndStatus(
                         vehicle.getPlateNumber(), driverNic, VehicleAuthorization.Status.GRANTED);
 
         if (activeAuthOpt.isEmpty()) {

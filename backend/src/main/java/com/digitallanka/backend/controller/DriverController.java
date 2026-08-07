@@ -36,7 +36,9 @@ public class DriverController {
         List<VehicleAuthorization> list = authorizationRepository.findByAuthorizedNicAndStatus(
                 driverNic, VehicleAuthorization.Status.PENDING);
 
+        java.util.Set<String> seenVehicles = new java.util.HashSet<>();
         List<AuthorizedVehicleDto> dtos = list.stream()
+                .filter(auth -> seenVehicles.add(auth.getVehicleId()))
                 .map(auth -> buildDto(auth, driverNic))
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toList());
@@ -58,7 +60,9 @@ public class DriverController {
                 driverNic, VehicleAuthorization.Status.GRANTED);
 
 
+        java.util.Set<String> seenVehicles = new java.util.HashSet<>();
         List<AuthorizedVehicleDto> list = auths.stream()
+                .filter(auth -> seenVehicles.add(auth.getVehicleId()))
                 .map(auth -> buildDto(auth, driverNic))
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toList());

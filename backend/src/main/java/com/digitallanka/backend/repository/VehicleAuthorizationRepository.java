@@ -13,6 +13,6 @@ public interface VehicleAuthorizationRepository extends JpaRepository<VehicleAut
     long countByVehicleIdAndStatusIn(String vehicleId, Collection<VehicleAuthorization.Status> statuses);
     List<VehicleAuthorization> findByAuthorizedNicAndStatus(String authorizedNic, VehicleAuthorization.Status status);
     List<VehicleAuthorization> findByVehicleId(String vehicleId);
-    Optional<VehicleAuthorization> findByVehicleIdAndAuthorizedNicAndStatus(
+    Optional<VehicleAuthorization> findFirstByVehicleIdAndAuthorizedNicAndStatus(
             String vehicleId, String authorizedNic, VehicleAuthorization.Status status);
 }

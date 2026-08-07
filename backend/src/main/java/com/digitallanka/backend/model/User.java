@@ -16,9 +16,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "full_name", nullable = false)
-    private String fullName;
-
     @Column(unique = true)
     private String email;
 
@@ -35,7 +32,7 @@ public class User {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public enum Role {
-        ROLE_USER,
+        ROLE_CITIZEN,
         ROLE_OFFICER,
         ROLE_ADMIN,
         ROLE_SUPER_ADMIN

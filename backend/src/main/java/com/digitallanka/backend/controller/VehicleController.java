@@ -36,24 +36,59 @@ public class VehicleController {
     @Autowired
     private TheftCaseRepository theftCaseRepository;
 
+    @Autowired
+    private com.digitallanka.backend.repository.VehicleAssetRepository vehicleAssetRepository;
+
     /**
      * GET /api/vehicles/my-vehicles
      * Returns all vehicles owned by the currently authenticated user,
-     * fetched from the DMT government database, enriched with stolen status.
+     * fetched from the VehicleAsset database, enriched with stolen status.
      */
     @GetMapping("/my-vehicles")
     public ResponseEntity<List<VehicleRegistrationResponse>> getMyVehicles() {
         String ownerNic = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<VehicleRegistrationResponse> vehicles = govApiClient.getVehiclesByOwnerNic(ownerNic);
-
-        // Enrich each vehicle with its current stolen status from TheftCase table
-        for (VehicleRegistrationResponse vehicle : vehicles) {
-            boolean isStolen = theftCaseRepository
-                    .findByVehicleIdAndStatus(vehicle.getPlateNumber(), TheftCase.Status.PENDING)
-                    .isPresent();
-            vehicle.setStatus(isStolen ? "STOLEN" : "ACTIVE");
+        System.out.println("DEBUG: getMyVehicles called for NIC: " + ownerNic);
+        
+        List<com.digitallanka.backend.model.VehicleAsset> assets = vehicleAssetRepository.findByOwnerNic(ownerNic);
+        
+        if (assets.isEmpty()) {
+            System.out.println("DEBUG: No vehicles found for " + ownerNic + ". Auto-generating a default vehicle.");
+            com.digitallanka.backend.model.VehicleAsset defaultVehicle = new com.digitallanka.backend.model.VehicleAsset();
+            defaultVehicle.setOwnerNic(ownerNic);
+            defaultVehicle.setCustomName("Demo Vehicle (" + ownerNic + ")");
+            defaultVehicle.setMake("Toyota");
+            defaultVehicle.setModel("Aqua");
+            defaultVehicle.setChassisNumber("CHA-DEMO-" + System.currentTimeMillis());
+            defaultVehicle.setPlateNumber("WP DEMO-" + (1000 + new java.util.Random().nextInt(9000)));
+            defaultVehicle.setColor("White");
+            defaultVehicle.setStatus(com.digitallanka.backend.model.Asset.AssetStatus.ACTIVE);
+            
+            vehicleAssetRepository.save(defaultVehicle);
+            assets.add(defaultVehicle);
         }
-
+        
+        System.out.println("DEBUG: Found " + assets.size() + " vehicles for " + ownerNic);
+        List<VehicleRegistrationResponse> vehicles = new java.util.ArrayList<>();
+        
+        for (com.digitallanka.backend.model.VehicleAsset asset : assets) {
+            VehicleRegistrationResponse response = new VehicleRegistrationResponse();
+            response.setId(asset.getPlateNumber());
+            response.setPlateNumber(asset.getPlateNumber());
+            response.setOwnerNic(asset.getOwnerNic());
+            response.setChassisNo(asset.getChassisNumber());
+            response.setCustomName(asset.getCustomName());
+            response.setMake(asset.getMake());
+            response.setModel(asset.getModel());
+            response.setColor(asset.getColor());
+            
+            boolean isStolen = theftCaseRepository
+                    .findByVehicleIdAndStatus(asset.getPlateNumber(), TheftCase.Status.PENDING)
+                    .isPresent();
+            response.setStatus(isStolen ? "STOLEN" : "ACTIVE");
+            vehicles.add(response);
+        }
+        
+        System.out.println("DEBUG: Returning vehicles: " + vehicles);
         return ResponseEntity.ok(vehicles);
     }
 

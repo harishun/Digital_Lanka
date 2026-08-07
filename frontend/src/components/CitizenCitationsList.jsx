@@ -14,9 +14,9 @@ export default function CitizenCitationsList({ currentNic }) {
   const [statusMsg, setStatusMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loadCitations = () => {
+  const loadCitations = async () => {
     try {
-      const list = api.getCitationsForCitizen(currentNic);
+      const list = await api.getCitationsForCitizen(currentNic);
       setCitations(list);
     } catch (e) {
       console.error("Failed to load citizen citations", e);
@@ -50,7 +50,7 @@ export default function CitizenCitationsList({ currentNic }) {
   };
 
   return (
-    <div className="citizen-citations-container glass-card animate-fade-in" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--glass-border)', maxWidth: '540px', margin: '0 auto 24px auto', width: '100%', boxSizing: 'border-box' }}>
+    <div className="citizen-citations-container glass-card animate-fade-in" style={{ padding: '24px', borderRadius: '16px', border: '1px solid var(--glass-border)', margin: '0 auto', width: '100%', boxSizing: 'border-box', height: '100%', display: 'flex', flexDirection: 'column' }}>
       
       {/* Header & Section Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -112,7 +112,7 @@ export default function CitizenCitationsList({ currentNic }) {
 
       {/* ── Pending Fines View ── */}
       {activeTab === 'PENDING' && (
-        <div>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
           {pendingCitations.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '28px', background: 'var(--c-card-sub-bg, #f8fafc)', borderRadius: '12px', border: '1px dashed var(--c-card-border, #cbd5e1)' }}>
               <span className="material-icons" style={{ fontSize: '36px', color: '#16a34a', opacity: 0.8 }}>verified_user</span>
@@ -158,7 +158,7 @@ export default function CitizenCitationsList({ currentNic }) {
 
       {/* ── Paid History View ── */}
       {activeTab === 'HISTORY' && (
-        <div>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
           {historyCitations.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '28px', background: 'var(--c-card-sub-bg, #f8fafc)', borderRadius: '12px', border: '1px dashed var(--c-card-border, #cbd5e1)' }}>
               <span className="material-icons" style={{ fontSize: '36px', opacity: 0.3 }}>history</span>

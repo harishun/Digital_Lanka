@@ -25,6 +25,9 @@ public class StolenTrackingService {
     @Autowired
     private GovApiClient govApiClient;
 
+    @Autowired
+    private com.digitallanka.backend.repository.VehicleAssetRepository vehicleAssetRepository;
+
     /**
      * Reports a vehicle as stolen. Verifies ownership via the DMT API.
      * Creates a TheftCase record — vehicle status is derived from TheftCase,
@@ -32,12 +35,15 @@ public class StolenTrackingService {
      */
     @Transactional
     public TheftCase reportStolen(String ownerNic, String vehicleId) {
-        // 1. Verify vehicle exists in DMT government database
-        VehicleRegistrationResponse vehicle = govApiClient.getVehicleByPlate(vehicleId)
-                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found in government records."));
+        // 1. Verify vehicle exists in DMT government database, fallback to local assets
+        String verifiedOwnerNic = govApiClient.getVehicleByPlate(vehicleId)
+                .map(VehicleRegistrationResponse::getOwnerNic)
+                .orElseGet(() -> vehicleAssetRepository.findByPlateNumber(vehicleId)
+                        .map(com.digitallanka.backend.model.VehicleAsset::getOwnerNic)
+                        .orElseThrow(() -> new IllegalArgumentException("Vehicle not found in government or local records.")));
 
         // 2. Verify only the owner can report stolen
-        if (!vehicle.getOwnerNic().equals(ownerNic)) {
+        if (!verifiedOwnerNic.equals(ownerNic)) {
             throw new IllegalStateException("Only the registered owner can report a vehicle as stolen.");
         }
 
@@ -98,5 +104,12 @@ public class StolenTrackingService {
      */
     public boolean isStolenVehicle(String vehicleId) {
         return theftCaseRepository.findByVehicleIdAndStatus(vehicleId, TheftCase.Status.PENDING).isPresent();
+    }
+
+    /**
+     * Retrieves all active (PENDING) theft cases.
+     */
+    public java.util.List<TheftCase> getActiveStolenCases() {
+        return theftCaseRepository.findByStatus(TheftCase.Status.PENDING);
     }
 }

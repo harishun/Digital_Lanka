@@ -275,7 +275,7 @@ class LicenceController
     {
         $stmt = $this->db->prepare(
             'SELECT id, plate_number, doc_no, issue_date, expiry_date, authority,
-                    chassis_no, engine_no, fuel_type, model, vehicle_class, owner_nic
+                    chassis_no, engine_no, fuel_type, model, color, make_year, vehicle_class, owner_nic
              FROM vehicle_registrations
              WHERE owner_nic = :nic
              ORDER BY plate_number'
@@ -301,7 +301,7 @@ class LicenceController
         $decoded = urldecode($plateNumber);
         $stmt = $this->db->prepare(
             'SELECT id, plate_number, doc_no, issue_date, expiry_date, authority,
-                    chassis_no, engine_no, fuel_type, model, vehicle_class, owner_nic
+                    chassis_no, engine_no, fuel_type, model, color, make_year, vehicle_class, owner_nic
              FROM vehicle_registrations
              WHERE plate_number = :plate LIMIT 1'
         );
@@ -427,6 +427,8 @@ class LicenceController
             'engineNo'     => $row['engine_no'],
             'fuelType'     => $row['fuel_type'],
             'model'        => $row['model'],
+            'color'        => $row['color'],
+            'makeYear'     => $row['make_year'],
             'vehicleClass' => $row['vehicle_class'],
             'ownerNic'     => $row['owner_nic'],
         ];

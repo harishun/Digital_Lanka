@@ -214,7 +214,7 @@ export default function VehicleDetailsModal({
                     </div>
                   </div>
 
-                  {auth.status === 'GRANTED' && (
+                  {auth.status === 'GRANTED' && auth.authorizedNic !== vehicle.ownerNic && (
                     <button 
                       onClick={() => handleRevokeAccess(auth.id)} 
                       className="btn-secondary" 

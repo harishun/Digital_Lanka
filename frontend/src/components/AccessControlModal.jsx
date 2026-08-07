@@ -205,7 +205,7 @@ export default function AccessControlModal({
                       </div>
                     </div>
 
-                    {auth.status === 'GRANTED' && (
+                    {auth.status === 'GRANTED' && auth.authorizedNic !== currentVehicle.ownerNic && (
                       <button 
                         onClick={() => handleRevokeAccess(auth.id)} 
                         className="btn-secondary" 

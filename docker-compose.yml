@@ -19,5 +19,21 @@ services:
       - ./database/01_digital_lanka_app_db.sql:/docker-entrypoint-initdb.d/01_digital_lanka_app_db.sql
       - app_db_data:/var/lib/mysql
 
+  # ────────────────────────────────────────────────────────────
+  # 2. phpMyAdmin for Application Database
+  # ────────────────────────────────────────────────────────────
+  app_phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: app_phpmyadmin
+    restart: always
+    ports:
+      - "8083:80"
+    environment:
+      PMA_HOST: digital-lanka-db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+      UPLOAD_LIMIT: 64M
+
 volumes:
   app_db_data:

@@ -60,7 +60,7 @@ export default function DocumentDetailsModal({
               {currentVehicle.plateNumber}
             </h2>
             <span style={{ fontSize: '13px', color: 'var(--c-secondary)' }}>
-              {currentVehicle.model || 'Toyota Prius'} | Class {currentVehicle.vehicleClass || 'B'} | Owner NIC: <strong style={{ color: 'var(--c-card-text)' }}>{currentVehicle.ownerNic}</strong>
+              {currentVehicle.model || 'Toyota Prius'} ({currentVehicle.color || 'Pearl White'}, {currentVehicle.makeYear || 2020}) | Class {currentVehicle.vehicleClass || 'B'} | Owner NIC: <strong style={{ color: 'var(--c-card-text)' }}>{currentVehicle.ownerNic}</strong>
             </span>
           </div>
         </div>

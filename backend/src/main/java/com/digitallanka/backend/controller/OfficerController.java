@@ -44,6 +44,11 @@ public class OfficerController {
         }
     }
 
+    @GetMapping("/vehicles/stolen")
+    public ResponseEntity<?> getStolenVehicles() {
+        return ResponseEntity.ok(stolenTrackingService.getActiveStolenCases());
+    }
+
     @GetMapping("/compliance/check")
     public ResponseEntity<?> runComplianceCheck(
             @RequestParam("plateNumber") String plateNumber,

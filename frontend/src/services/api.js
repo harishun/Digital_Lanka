@@ -142,10 +142,46 @@ const DEFAULT_CITIZENS = {
 const getDb  = (key)       => JSON.parse(localStorage.getItem(key));
 const saveDb = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
-// ── Citizen profile (local reference only) ───────────────────────────────────
-export const getCitizen = (nic) => DEFAULT_CITIZENS[nic] || null;
-export const getCitizenProfile = (nic) => DEFAULT_CITIZENS[nic] || DEFAULT_CITIZENS["197204509123"];
+// ── Citizen profile (async from backend) ───────────────────────────────────
+export const getMe = async (nic) => {
+  try {
+    const token = await loginAndGetToken(nic);
+    if (token) {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        return await response.json();
+      }
+    }
+  } catch(e) {
+    console.warn("Failed to fetch /auth/me", e.message);
+  }
+  
+  // Local fallback
+  return getCitizenProfile(nic);
+};
 
+export const getCitizenProfile = (nic) => {
+  if (DEFAULT_CITIZENS[nic]) return DEFAULT_CITIZENS[nic];
+  
+  return {
+    nic,
+    fullName: `Citizen (${nic})`,
+    role: 'CITIZEN',
+    gender: "Not Specified",
+    dateOfBirth: "Unknown",
+    address: "Not Specified",
+    dateOfIssue: "Unknown",
+    placeOfBirth: "Sri Lanka",
+    licenseNumber: `DL-${nic}-X`,
+    bloodGroup: "Unknown",
+    restrictions: "NONE",
+    donor: false,
+    vehicleClasses: []
+  };
+};
 
 // ── Auth Service API Calls ───────────────────────────────────────────────────
 
@@ -163,17 +199,13 @@ export const login = async (nic, password) => {
       localStorage.setItem('current_user_nic', nic.trim());
       localStorage.setItem(tokenKey, data.token);
       return data;
+    } else {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Login failed. Please verify your credentials.');
     }
   } catch (err) {
-    console.warn("Backend login failed, using fallback authentication:", err.message);
+    throw err;
   }
-
-  const userNic = nic.trim();
-  const tokenKey = `jwt_token_${userNic}`;
-  const mockToken = `mock_jwt_token_${userNic}_${Date.now()}`;
-  localStorage.setItem('current_user_nic', userNic);
-  localStorage.setItem(tokenKey, mockToken);
-  return { token: mockToken, nic: userNic };
 };
 
 export const verifyNic = async (nic) => {
@@ -209,15 +241,13 @@ export const register = async (nic, email, phone, password, confirmPassword) => 
         localStorage.setItem(`jwt_token_${nic.trim()}`, data.token);
       }
       return data;
+    } else {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Registration failed.');
     }
   } catch (err) {
-    console.warn("Backend register failed, using fallback registration:", err.message);
+    throw err;
   }
-
-  const mockToken = `mock_jwt_token_${nic.trim()}_${Date.now()}`;
-  localStorage.setItem('current_user_nic', nic.trim());
-  localStorage.setItem(`jwt_token_${nic.trim()}`, mockToken);
-  return { token: mockToken, nic: nic.trim() };
 };
 
 // ── JWT authentication helper ────────────────────────────────────────────────
@@ -226,6 +256,14 @@ const loginAndGetToken = async (nic = null) => {
   const currentNic = nic || localStorage.getItem('current_user_nic') || '197204509123';
   const tokenKey = `jwt_token_${currentNic}`;
   let token = localStorage.getItem(tokenKey);
+  
+  // If we somehow have a mock token saved, clear it out immediately
+  if (token && token.startsWith('mock_jwt_token')) {
+    localStorage.removeItem(tokenKey);
+    localStorage.removeItem('current_user_nic');
+    token = null;
+    window.location.reload(); // Force them back to login page
+  }
 
   if (!token) {
     try {
@@ -291,7 +329,9 @@ const FALLBACK_OWNED_VEHICLES = {
       chassisNo: "CHA-998822110-B",
       engineNo: "ENG-L15B-228193",
       fuelType: "Petrol / Hybrid",
-      model: "Honda Vezel (White)",
+      model: "Honda Vezel",
+      color: "White",
+      makeYear: 2019,
       vehicleClass: "B",
       ownerNic: "197204509123",
       status: "ACTIVE"
@@ -306,7 +346,9 @@ const FALLBACK_OWNED_VEHICLES = {
       chassisNo: "CHA-334455667-A",
       engineNo: "ENG-1LM-445522",
       fuelType: "Petrol / Hybrid",
-      model: "Toyota Aqua (Blue)",
+      model: "Toyota Aqua",
+      color: "Blue",
+      makeYear: 2017,
       vehicleClass: "B",
       ownerNic: "197204509123",
       status: "ACTIVE"
@@ -321,7 +363,9 @@ const FALLBACK_OWNED_VEHICLES = {
       chassisNo: "CHA-782637218-X",
       engineNo: "ENG-1NZ-991827",
       fuelType: "Petrol / Hybrid",
-      model: "Toyota Prius (Grey)",
+      model: "Toyota Prius",
+      color: "Grey",
+      makeYear: 2018,
       vehicleClass: "B",
       ownerNic: "197204509123",
       status: "ACTIVE"
@@ -338,7 +382,9 @@ const FALLBACK_OWNED_VEHICLES = {
       chassisNo: "CHA-112233445-Z",
       engineNo: "ENG-EM57-882233",
       fuelType: "Electric",
-      model: "Nissan Leaf (Silver)",
+      model: "Nissan Leaf EV",
+      color: "Silver",
+      makeYear: 2022,
       vehicleClass: "A",
       ownerNic: "198503402948",
       status: "ACTIVE"
@@ -355,7 +401,9 @@ const FALLBACK_OWNED_VEHICLES = {
       chassisNo: "CHA-556677889-C",
       engineNo: "ENG-K10B-334411",
       fuelType: "Petrol",
-      model: "Suzuki Alto (Red)",
+      model: "Suzuki Wagon R",
+      color: "Red",
+      makeYear: 2020,
       vehicleClass: "B",
       ownerNic: "199003402948",
       status: "ACTIVE"
@@ -366,7 +414,7 @@ const FALLBACK_OWNED_VEHICLES = {
 export const getVehiclesOwned = async (ownerNic) => {
   try {
     const token = await loginAndGetToken(ownerNic);
-    if (!token) return FALLBACK_OWNED_VEHICLES[ownerNic] || [];
+    if (!token) return [];
 
     const response = await fetch(`${API_BASE_URL}/vehicles/my-vehicles`, {
       method: 'GET',
@@ -374,14 +422,14 @@ export const getVehiclesOwned = async (ownerNic) => {
     });
 
     if (!response.ok) {
-      return FALLBACK_OWNED_VEHICLES[ownerNic] || [];
+      return [];
     }
 
     const data = await response.json();
-    return (data && data.length > 0) ? data : (FALLBACK_OWNED_VEHICLES[ownerNic] || []);
+    return data || [];
   } catch (err) {
-    console.warn("Backend getVehiclesOwned failed, returning fallback:", err.message);
-    return FALLBACK_OWNED_VEHICLES[ownerNic] || [];
+    console.warn("Backend getVehiclesOwned failed:", err.message);
+    return [];
   }
 };
 
@@ -460,62 +508,22 @@ const addLocalNotification = (recipientNic, notificationObj) => {
 export const getVehiclesAuthorizedToDrive = async (driverNic) => {
   try {
     const token = await loginAndGetToken(driverNic);
-    if (token) {
-      const response = await fetch(`${API_BASE_URL}/drivers/authorized-vehicles`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.length > 0) return data;
-      }
-    }
-  } catch (err) {
-    console.warn("Backend getVehiclesAuthorizedToDrive failed, returning fallback:", err.message);
-  }
+    if (!token) return [];
 
-  // Self-authorization sync: Add owned vehicles matching valid driver licence classes to authorized list
-  const owned = FALLBACK_OWNED_VEHICLES[driverNic] || [];
-  const citizen = DEFAULT_CITIZENS[driverNic];
-  const validClasses = (citizen && citizen.vehicleClasses) ? citizen.vehicleClasses.map(c => c.classCode.toUpperCase()) : ['A', 'B'];
-
-  owned.forEach(v => {
-    const vClass = (v.vehicleClass || 'B').toUpperCase();
-    if (validClasses.includes(vClass)) {
-      const exists = FALLBACK_AUTHORIZATIONS.some(a => a.authorizedNic === driverNic && (a.vehicleId === v.plateNumber || a.vehicleId === v.id));
-      if (!exists) {
-        FALLBACK_AUTHORIZATIONS.push({
-          id: 'self_auth_' + (v.plateNumber || v.id).replace(/\s+/g, ''),
-          vehicleId: v.plateNumber || v.id,
-          ownerNic: driverNic,
-          authorizedNic: driverNic,
-          accessType: 'PERMANENT',
-          status: 'GRANTED',
-          createdAt: new Date().toISOString()
-        });
-      }
-    }
-  });
-
-  // Fallback: Filter local authorizations where authorizedNic === driverNic AND status === 'GRANTED' ONLY
-  const grantedAuths = FALLBACK_AUTHORIZATIONS.filter(a => a.authorizedNic === driverNic && a.status === 'GRANTED');
-  return grantedAuths.map(auth => {
-    let vDetails = null;
-    Object.values(FALLBACK_OWNED_VEHICLES).forEach(list => {
-      const found = list.find(v => v.plateNumber === auth.vehicleId || v.id === auth.vehicleId);
-      if (found) vDetails = found;
+    const response = await fetch(`${API_BASE_URL}/drivers/authorized-vehicles`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    return {
-      authorizationId: auth.id,
-      vehicleId: auth.vehicleId,
-      plateNumber: auth.vehicleId,
-      model: vDetails ? vDetails.model : 'Toyota Vehicle',
-      vehicleClass: vDetails ? vDetails.vehicleClass : 'B',
-      status: auth.status,
-      startTime: auth.startTime,
-      endTime: auth.endTime
-    };
-  });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data || [];
+    }
+    return [];
+  } catch (err) {
+    console.warn("Backend getVehiclesAuthorizedToDrive failed:", err.message);
+    return [];
+  }
 };
 
 /**
@@ -524,38 +532,22 @@ export const getVehiclesAuthorizedToDrive = async (driverNic) => {
 export const getPendingInvitations = async (driverNic) => {
   try {
     const token = await loginAndGetToken(driverNic);
-    if (token) {
-      const response = await fetch(`${API_BASE_URL}/drivers/invitations`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.length > 0) return data;
-      }
-    }
-  } catch (err) {
-    console.warn("Backend getPendingInvitations failed, returning fallback:", err.message);
-  }
+    if (!token) return [];
 
-  // Fallback: Filter local authorizations where authorizedNic === driverNic AND status === 'PENDING' ONLY
-  const pendingAuths = FALLBACK_AUTHORIZATIONS.filter(a => a.authorizedNic === driverNic && a.status === 'PENDING');
-  return pendingAuths.map(auth => {
-    const ownerName = DEFAULT_CITIZENS[auth.ownerNic] ? DEFAULT_CITIZENS[auth.ownerNic].fullName : auth.ownerNic;
-    return {
-      id: auth.id,
-      authorizationId: auth.id,
-      vehicleId: auth.vehicleId,
-      plateNumber: auth.vehicleId,
-      ownerNic: auth.ownerNic,
-      ownerName: ownerName,
-      accessType: auth.accessType,
-      status: auth.status,
-      startTime: auth.startTime,
-      endTime: auth.endTime,
-      createdAt: auth.createdAt
-    };
-  });
+    const response = await fetch(`${API_BASE_URL}/drivers/invitations`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data || [];
+    }
+    return [];
+  } catch (err) {
+    console.warn("Backend getPendingInvitations failed:", err.message);
+    return [];
+  }
 };
 
 /**
@@ -576,7 +568,7 @@ let FALLBACK_AUTHORIZATIONS = [
 export const getAuthorizationsByVehicle = async (vehicleId, ownerNic) => {
   try {
     const token = await loginAndGetToken(ownerNic);
-    if (!token) return FALLBACK_AUTHORIZATIONS.filter(a => a.vehicleId === vehicleId || a.vehicleId === (vehicleId && vehicleId.replace(/\s+/g, '')));
+    if (!token) return [];
 
     const response = await fetch(`${API_BASE_URL}/vehicles/${encodeURIComponent(vehicleId)}/authorizations`, {
       method: 'GET',
@@ -584,14 +576,14 @@ export const getAuthorizationsByVehicle = async (vehicleId, ownerNic) => {
     });
 
     if (!response.ok) {
-      return FALLBACK_AUTHORIZATIONS.filter(a => a.vehicleId === vehicleId || a.vehicleId === (vehicleId && vehicleId.replace(/\s+/g, '')));
+      return [];
     }
 
     const data = await response.json();
-    return (data && data.length > 0) ? data : FALLBACK_AUTHORIZATIONS.filter(a => a.vehicleId === vehicleId || a.vehicleId === (vehicleId && vehicleId.replace(/\s+/g, '')));
+    return data || [];
   } catch (err) {
-    console.warn("Backend getAuthorizationsByVehicle failed, returning fallback:", err.message);
-    return FALLBACK_AUTHORIZATIONS.filter(a => a.vehicleId === vehicleId || a.vehicleId === (vehicleId && vehicleId.replace(/\s+/g, '')));
+    console.warn("Backend getAuthorizationsByVehicle failed:", err.message);
+    return [];
   }
 };
 
@@ -776,31 +768,28 @@ export const revokeAuthorization = async (vehicleId, authId, ownerNic) => {
 export const getMyNotifications = async (recipientNic) => {
   try {
     const token = await loginAndGetToken(recipientNic);
-    if (token) {
-      const response = await fetch(`${API_BASE_URL}/notifications`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const local = JSON.parse(localStorage.getItem(`dl_notifs_${recipientNic}`) || '[]');
-        return [...local, ...(data || [])];
-      }
+    if (!token) return [];
+
+    const response = await fetch(`${API_BASE_URL}/notifications`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data || [];
     }
+    return [];
   } catch (err) {
-    console.warn("Backend getMyNotifications failed, returning fallback:", err.message);
-    return getDb('dl_notifications') || [];
+    console.warn("Backend getMyNotifications failed:", err.message);
+    return [];
   }
 };
 
 export const readNotification = async (notifId, recipientNic) => {
   try {
     const token = await loginAndGetToken(recipientNic);
-    if (!token) {
-      const notifs = getDb('dl_notifications') || [];
-      saveDb('dl_notifications', notifs.filter(n => n.id !== notifId));
-      return;
-    }
+    if (!token) return;
 
     await fetch(`${API_BASE_URL}/notifications/${notifId}/read`, {
       method: 'POST',
@@ -808,8 +797,6 @@ export const readNotification = async (notifId, recipientNic) => {
     });
   } catch (err) {
     console.warn("Backend readNotification failed:", err.message);
-    const notifs = getDb('dl_notifications') || [];
-    saveDb('dl_notifications', notifs.filter(n => n.id !== notifId));
   }
 };
 
@@ -872,6 +859,24 @@ export const markVehicleRecovered = async (vehicleId, remarks, officerNic) => {
 };
 
 // ── Officer compliance check ──────────────────────────────────────────────────
+
+export const getStolenVehicles = async (officerNic) => {
+  try {
+    const token = await loginAndGetToken(officerNic || '197204509123');
+    if (token) {
+      const response = await fetch(`${API_BASE_URL}/officers/vehicles/stolen`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        return await response.json();
+      }
+    }
+  } catch (e) {
+    console.warn("Backend getStolenVehicles failed:", e.message);
+  }
+  return [];
+};
 
 export const queryCompliance = async (plateNumber, driverNic, officerNic) => {
   try {
@@ -955,9 +960,25 @@ export const getCitations = () => {
   return citations;
 };
 
-export const getCitationsForCitizen = (driverNic) => {
-  const all = getCitations();
-  return all.filter(c => c.driverNic === driverNic || c.offenderNic === driverNic || driverNic === '197204509123');
+export const getCitationsForCitizen = async (driverNic) => {
+  try {
+    const token = await loginAndGetToken(driverNic);
+    if (!token) return [];
+
+    const response = await fetch(`${API_BASE_URL}/citations/my`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data || [];
+    }
+    return [];
+  } catch (err) {
+    console.warn("Backend getCitationsForCitizen failed:", err.message);
+    return [];
+  }
 };
 
 export const getCitationsForOfficer = (officerNic) => {

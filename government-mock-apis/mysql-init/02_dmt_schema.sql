@@ -69,7 +69,9 @@ VALUES
 ('d0000000-0000-0000-0000-000000000003', 'DL-8822119-P', '199003402948', 'PERERA', 'K.A. DON', 'K.A. DON PERERA', 'MALE', '1990-11-20', 'B+', 5, 6, '12, Matara Rd, Galle', 0, 'NONE'),
 ('d0000000-0000-0000-0000-000000000004', 'DL-7733441-H', '198012304958', 'RATHNAYAKE', 'MAHINDA', 'MAHINDA RATHNAYAKE', 'MALE', '1980-04-12', 'O+', 6, 0, '88, Main Street, Kurunegala', 1, 'CORRECTIVE_LENSES'),
 ('d0000000-0000-0000-0000-000000000005', 'DL-6655443-B', '199556708123', 'JAYASURIYA', 'THARINDU', 'THARINDU JAYASURIYA', 'MALE', '1995-09-08', 'AB+', 5, 9, '23, Bus Stand Rd, Negombo', 1, 'NONE'),
-('d0000000-0000-0000-0000-000000000006', 'DL-5544332-E', '200508901234', 'PERERA', 'SHENALI', 'SHENALI PERERA', 'FEMALE', '2005-02-14', 'A-', 5, 4, '101, Galle Road, Dehiwala', 1, 'NONE')
+('d0000000-0000-0000-0000-000000000006', 'DL-5544332-E', '200508901234', 'PERERA', 'SHENALI', 'SHENALI PERERA', 'FEMALE', '2005-02-14', 'A-', 5, 4, '101, Galle Road, Dehiwala', 1, 'NONE'),
+('d0000000-0000-0000-0000-000000000007', 'DL-2222333-E', '199201509999', 'SILVA', 'KAMAL', 'KAMAL SILVA', 'MALE', '1992-01-15', 'O+', 5, 9, '7A, Marine Drive, Colombo', 1, 'NONE'),
+('d0000000-0000-0000-0000-000000000008', 'DL-1111444-F', '198812301111', 'FERNANDO', 'NIMAL', 'NIMAL FERNANDO', 'MALE', '1988-12-30', 'A+', 5, 6, '99, Lake Road, Kandy', 0, 'NONE')
 ON DUPLICATE KEY UPDATE nic=nic;
 
 -- ────────────────────────────────────────────────────────────
@@ -119,20 +121,22 @@ CREATE TABLE IF NOT EXISTS vehicle_registrations (
     engine_no       VARCHAR(50)     NOT NULL,
     fuel_type       VARCHAR(50)     NOT NULL,
     model           VARCHAR(100)    NOT NULL,
+    color           VARCHAR(50)     NOT NULL,
+    make_year       INT             NOT NULL,
     vehicle_class   VARCHAR(5)      NOT NULL,
     owner_nic       VARCHAR(15)     NOT NULL
 );
 
-INSERT INTO vehicle_registrations (id, plate_number, doc_no, issue_date, expiry_date, authority, chassis_no, engine_no, fuel_type, model, vehicle_class, owner_nic)
+INSERT INTO vehicle_registrations (id, plate_number, doc_no, issue_date, expiry_date, authority, chassis_no, engine_no, fuel_type, model, color, make_year, vehicle_class, owner_nic)
 VALUES
-('v1', 'WP LA-9999', 'VRC-WPLA9999-88A', '2021-08-15', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-782637218-X', 'ENG-1NZ-991827', 'Petrol / Hybrid', 'Toyota Prius (Grey)', 'B', '197204509123'),
-('v2', 'WP CAD-1234', 'VRC-WPCAD1234-99B', '2022-09-20', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-998822110-B', 'ENG-L15B-228193', 'Petrol / Hybrid', 'Honda Vezel (White)', 'B', '197204509123'),
-('v3', 'WP BC-5544', 'VRC-WPBC5544-22X', '2023-05-10', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-112233445-Z', 'ENG-21C-558291', 'Petrol', 'Yamaha FZ (Black)', 'A', '198503402948'),
-('v4', 'WP CBA-5678', 'VRC-WPCBA5678-77F', '2023-04-12', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-334455667-A', 'ENG-1LM-445522', 'Petrol / Hybrid', 'Toyota Aqua (Blue)', 'B', '197204509123'),
-('v5', 'WP KD-4321', 'VRC-WPKD4321-44G', '2024-02-18', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-556677889-C', 'ENG-R06A-882291', 'Petrol', 'Suzuki Wagon R (Red)', 'B', '199003402948'),
-('v6', 'WP ND-8877', 'VRC-WPND8877-11M', '2019-01-10', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-ISZ-991827-H', 'ENG-4HK1-5544', 'Diesel', 'Isuzu Commercial Heavy Lorry (White)', 'CE', '198012304958'),
-('v7', 'WP NB-3322', 'VRC-WPNB3322-55P', '2020-06-14', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-LEY-883920-K', 'ENG-6D16-9922', 'Diesel', 'Ashok Leyland Passenger Bus (Red)', 'D', '199556708123'),
-('v8', 'WP PH-7711', 'VRC-WPPH7711-99E', '2023-11-05', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-NIS-772211-E', 'ENG-EM57-EV01', 'Electric', 'Nissan Leaf EV (Silver)', 'B', '200508901234')
+('v1', 'WP LA-9999', 'VRC-WPLA9999-88A', '2021-08-15', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-782637218-X', 'ENG-1NZ-991827', 'Petrol / Hybrid', 'Toyota Prius', 'Grey', 2018, 'B', '197204509123'),
+('v2', 'WP CAD-1234', 'VRC-WPCAD1234-99B', '2022-09-20', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-998822110-B', 'ENG-L15B-228193', 'Petrol / Hybrid', 'Honda Vezel', 'White', 2019, 'B', '197204509123'),
+('v3', 'WP BC-5544', 'VRC-WPBC5544-22X', '2023-05-10', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-112233445-Z', 'ENG-21C-558291', 'Petrol', 'Yamaha FZ', 'Black', 2021, 'A', '198503402948'),
+('v4', 'WP CBA-5678', 'VRC-WPCBA5678-77F', '2023-04-12', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-334455667-A', 'ENG-1LM-445522', 'Petrol / Hybrid', 'Toyota Aqua', 'Blue', 2017, 'B', '197204509123'),
+('v5', 'WP KD-4321', 'VRC-WPKD4321-44G', '2024-02-18', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-556677889-C', 'ENG-R06A-882291', 'Petrol', 'Suzuki Wagon R', 'Red', 2020, 'B', '199003402948'),
+('v6', 'WP ND-8877', 'VRC-WPND8877-11M', '2019-01-10', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-ISZ-991827-H', 'ENG-4HK1-5544', 'Diesel', 'Isuzu Commercial Heavy Lorry', 'White', 2015, 'CE', '198012304958'),
+('v7', 'WP NB-3322', 'VRC-WPNB3322-55P', '2020-06-14', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-LEY-883920-K', 'ENG-6D16-9922', 'Diesel', 'Ashok Leyland Passenger Bus', 'Red', 2018, 'D', '199556708123'),
+('v8', 'WP PH-7711', 'VRC-WPPH7711-99E', '2023-11-05', 'Permanent / Non-Expiring', 'Department of Motor Traffic (DMT) Sri Lanka', 'CHA-NIS-772211-E', 'ENG-EM57-EV01', 'Electric', 'Nissan Leaf EV', 'Silver', 2022, 'B', '200508901234')
 ON DUPLICATE KEY UPDATE id=id;
 
 -- ────────────────────────────────────────────────────────────

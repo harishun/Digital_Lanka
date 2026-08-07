@@ -38,50 +38,11 @@ public class BackendApplication {
 			}
 
 			// ── Seed application users ────────────────────────────────────────
-			// Note: Vehicle data lives in the DMT Government Mock Database.
-			//       This application only seeds users, authorizations, and notifications.
+			// (Users are now seeded by DatabaseSeeder.java, which completely wipes
+            // and repopulates the users table to fix any bad data left behind.)
 
-			String targetNic = "197204509123";
-			if (userRepository.findById(targetNic).isEmpty()) {
-				User user = new User();
-				user.setNic(targetNic);
-				user.setFullName("W.M. SUGATHADASA");
-				user.setEmail("sugathadasa@gmail.com");
-				user.setPhone("0777654321");
-				user.setPassword(passwordEncoder.encode("dev_test@123"));
-				user.setRole(User.Role.ROLE_USER);
-				user.setActive(true);
-				userRepository.save(user);
-				System.out.println("--- SEEDED DEFAULT USER: " + targetNic);
-			}
-
-			String arjunNic = "198503402948";
-			if (userRepository.findById(arjunNic).isEmpty()) {
-				User user = new User();
-				user.setNic(arjunNic);
-				user.setFullName("ARJUN RANAWEERA");
-				user.setEmail("arjun@gmail.com");
-				user.setPhone("0772345678");
-				user.setPassword(passwordEncoder.encode("dev_test@123"));
-				user.setRole(User.Role.ROLE_USER);
-				user.setActive(true);
-				userRepository.save(user);
-				System.out.println("--- SEEDED TEST USER: " + arjunNic);
-			}
-
-			String pereraNic = "199003402948";
-			if (userRepository.findById(pereraNic).isEmpty()) {
-				User user = new User();
-				user.setNic(pereraNic);
-				user.setFullName("K.A. DON PERERA");
-				user.setEmail("perera@gmail.com");
-				user.setPhone("0773456789");
-				user.setPassword(passwordEncoder.encode("dev_test@123"));
-				user.setRole(User.Role.ROLE_USER);
-				user.setActive(true);
-				userRepository.save(user);
-				System.out.println("--- SEEDED TEST USER: " + pereraNic);
-			}
+            String targetNic = "197204509123";
+            String pereraNic = "199003402948";
 
 			// ── Seed default authorizations ───────────────────────────────────
 			// vehicleId uses plate number as the canonical identifier.
@@ -116,7 +77,7 @@ public class BackendApplication {
 				auth2.setId("auth_seed_2");
 				auth2.setVehicleId("WP LA-9999");
 				auth2.setOwnerNic(targetNic);
-				auth2.setAuthorizedNic(arjunNic);
+				auth2.setAuthorizedNic("198503402948");
 				auth2.setAccessType(VehicleAuthorization.AccessType.PERMANENT);
 				auth2.setStatus(VehicleAuthorization.Status.GRANTED);
 				vehicleAuthorizationRepository.save(auth2);

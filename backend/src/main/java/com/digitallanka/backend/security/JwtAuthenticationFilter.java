@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             User user = userRepository.findByNic(userNic).orElse(null);
 
             if (user != null && jwtService.isTokenValid(jwt, userNic)) {
-                String role = (user.getRole() != null) ? user.getRole().name() : "ROLE_USER";
+                String role = (user.getRole() != null) ? user.getRole().name() : "ROLE_CITIZEN";
                 UserDetails userDetails = new org.springframework.security.core.userdetails.User(
                     user.getNic(),
                     user.getPassword(),

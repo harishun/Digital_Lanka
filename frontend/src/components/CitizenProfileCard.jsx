@@ -214,8 +214,8 @@ export default function CitizenProfileCard({ currentUser }) {
               </h3>
             </div>
             <span style={{
-              fontSize: '11px', fontWeight: '900', color: '#ffffff', fontFamily: "'Courier New', monospace",
-              background: 'rgba(255,255,255,0.15)', padding: '4px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.25)'
+              fontSize: '15px', fontWeight: '900', color: '#ffffff', fontFamily: "'Courier New', monospace",
+              background: 'rgba(255,255,255,0.15)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.25)'
             }}>
               {currentUser.licenseNumber || 'DL-1972045-Y'}
             </span>

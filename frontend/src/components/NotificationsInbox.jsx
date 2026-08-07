@@ -14,7 +14,7 @@ export default function NotificationsInbox({
   loadData
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
       {/* Incoming Invitations Card */}
       {incomingInvitations.length > 0 && (
         <div className="glass-card" style={{ padding: '24px', borderRadius: '12px', borderLeft: '4px solid #f59e0b' }}>
@@ -78,7 +78,7 @@ export default function NotificationsInbox({
       )}
 
       {/* Inbox / Notifications List Card */}
-      <div className="glass-card" style={{ padding: '24px', borderRadius: '12px' }}>
+      <div className="glass-card" style={{ padding: '24px', borderRadius: '12px', flex: 1, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 className="section-title" style={{ margin: 0, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--c-text-bright)' }}>
             <span className="material-icons" style={{ color: 'var(--c-primary)' }}>inbox</span>
@@ -94,7 +94,7 @@ export default function NotificationsInbox({
             </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '340px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, overflowY: 'auto' }}>
             {notifications.map((n) => {
               const isUnread = !n.isRead && !n.is_read && !n.read;
               return (

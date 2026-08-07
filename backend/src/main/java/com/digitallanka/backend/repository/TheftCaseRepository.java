@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface TheftCaseRepository extends JpaRepository<TheftCase, String> {
     Optional<TheftCase> findByVehicleIdAndStatus(String vehicleId, TheftCase.Status status);
+    java.util.List<TheftCase> findByStatus(TheftCase.Status status);
 }

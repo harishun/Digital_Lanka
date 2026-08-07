@@ -1,5 +1,6 @@
 package com.digitallanka.backend.controller;
 
+import com.digitallanka.backend.dto.CitationRequest;
 import com.digitallanka.backend.entity.Citation;
 import com.digitallanka.backend.entity.CitationStatus;
 import com.digitallanka.backend.model.User;
@@ -14,8 +15,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -27,6 +30,37 @@ public class CitationController {
 
     @Autowired
     private UserRepository userRepository;
+
+    // Issue a new citation
+    @PostMapping
+    public ResponseEntity<?> issueCitation(@RequestBody CitationRequest request) {
+        try {
+            UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String officerNic = userDetails.getUsername();
+
+            Optional<User> offenderOpt = userRepository.findByNic(request.getDriverNic());
+            if (offenderOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Offender not found in application database");
+            }
+
+            Citation citation = Citation.builder()
+                    .referenceNumber("CIT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                    .offender(offenderOpt.get())
+                    .plateNumber(request.getPlateNumber())
+                    .violationType(request.getViolationType())
+                    .gpsCoordinates(request.getGpsCoordinates())
+                    .fineAmount(request.getFineAmount())
+                    .officerNic(officerNic)
+                    .timestamp(LocalDateTime.now())
+                    .status(CitationStatus.PENDING_PAYMENT)
+                    .build();
+
+            citationRepository.save(citation);
+            return ResponseEntity.ok(citation);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not issue citation");
+        }
+    }
 
     // Get citations for the logged-in citizen
     @GetMapping("/my")

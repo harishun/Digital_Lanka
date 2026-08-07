@@ -30,6 +30,15 @@ public class Citation {
     @Column(name = "gps_coordinates")
     private String gpsCoordinates;
 
+    @Column(name = "plate_number")
+    private String plateNumber;
+
+    @Column(name = "fine_amount")
+    private String fineAmount;
+
+    @Column(name = "officer_nic")
+    private String officerNic;
+
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
 

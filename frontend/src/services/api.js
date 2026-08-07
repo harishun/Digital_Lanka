@@ -986,26 +986,26 @@ export const getCitationsForOfficer = (officerNic) => {
   return all.filter(c => c.officerNic === officerNic || officerNic === '197828430012' || !c.officerNic);
 };
 
-export const issueCitation = (plateNumber, driverNic, nature, place, amount, officerName, officerBatch, officerNic = '197828430012') => {
-  const citations = getCitations();
-  const newCit = {
-    id: 'cit_' + Math.random().toString(36).substr(2, 9),
-    referenceNumber: 'REF-' + Math.floor(100000 + Math.random() * 900000),
-    date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-    plateNumber,
-    driverNic,
-    place,
-    nature,
-    officerName,
-    officerBatch,
-    officerNic,
-    amount: parseFloat(amount) || 1000,
-    status: 'PENDING_PAYMENT',
-    proofUploaded: false
-  };
-  citations.unshift(newCit);
-  saveDb('dl_citations', citations);
-  return newCit;
+export const issueCitation = async (payload) => {
+  const currentNic = localStorage.getItem('current_user_nic') || '197828430012';
+  const token = await loginAndGetToken(currentNic);
+  if (!token) throw new Error("Not authenticated");
+
+  const response = await fetch(`${API_BASE_URL}/citations`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json' 
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(err || "Failed to issue citation");
+  }
+
+  return await response.json();
 };
 
 export const submitProofOfPayment = (citationId, receiptImage) => {

@@ -177,14 +177,13 @@ function OfficerDashboard({ currentNic, currentUser }) {
       });
       const fineAmountStr = hasCourtFine ? `Rs ${totalFine} + Court Summons` : `Rs ${totalFine}`;
 
-      await api.issueCitation(
-        dlNo.trim() || data.citizen.nic,
-        plateNo.toUpperCase(),
-        violationString,
-        fineAmountStr,
-        gps || "Colombo Fort Checkpoint",
-        currentNic
-      );
+      await api.issueCitation({
+        driverNic: dlNo.trim() || data.citizen.nic,
+        plateNumber: plateNo.toUpperCase(),
+        violationType: violationString,
+        fineAmount: fineAmountStr,
+        gpsCoordinates: gps || "Colombo Fort Checkpoint"
+      });
 
       const newCit = {
         id: `CIT-${Math.floor(Math.random() * 1000000)}`,
